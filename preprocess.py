@@ -5,21 +5,24 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import librosa
 # np.set_printoptions(threshold=sys.maxsize)
 class Datasets():
 
     def __init__(self, data_path): 
         self.data_path = data_path
-        self.mean = np.zeros((432, 288, 4))
-        self.std = np.ones((432, 288, 4))
-        self.calc_mean_and_std()
+        self.mean = np.zeros((288, 432, 4))
+        self.std = np.ones((288, 432, 4))
+        # self.calc_mean_and_std()
         # self.classes = ["blues", "classical", "country", "disco", "hiphop", "jazz", "metal", "pop", "reggae", "rock"]
         self.classes = [""] * 10
         self.idx_to_class = {}
         self.class_to_idx = {}
         
-        self.train_data = self.get_data(os.path.join(self.data_path, "train/"))
-        self.test_data = self.get_data(os.path.join(self.data_path, "test/"))
+        data = self.wav_to_mel()
+        self.train_data = data[:int(len(data)*0.8)]
+        self.val_data = data[int(len(data)*0.8):int(len(data)*0.9)]
+        self.test_data = data[int(len(data)*0.9):]
     
     def calc_mean_and_std(self):
         file_list = []
@@ -30,7 +33,7 @@ class Datasets():
 
 
         # Shuffle filepaths
-        random.shuffle(file_list)
+        # random.shuffle(file_list)
         # print('LOOKATME')
         # print(Image.open(file_list[0]))
 
@@ -40,12 +43,12 @@ class Datasets():
 
         # Allocate space in memory for images
         data_sample = np.zeros(
-            (900, 432, 288, 4))
+            (900, 288, 432, 4))
 
         # Import images
         for i, file_path in enumerate(file_list):
             img = Image.open(file_path)
-            img = np.resize(img, (432, 288, 4))
+            img = np.resize(img, (288, 432, 4))
             img = np.array(img, dtype=np.float32)
             img /= 255
 
@@ -78,7 +81,7 @@ class Datasets():
     
     def preprocess_fn(self, img):
         # print(img.shape)
-        img = np.resize(img, (432, 288, 4))
+        img = np.resize(img, (288, 432, 4))
         img = np.array(img, dtype=np.float32)
         # print(img)
         
@@ -87,13 +90,13 @@ class Datasets():
             img = np.stack([img, img, img], axis=-1)
         if random.random() < 0.3:
             img = img + tf.random.uniform(
-                (432, 288, 4),
+                (288, 432, 4),
                 minval=-0.1,
                 maxval=0.1)
         # img = self.standardize(img)
         # print('here')
         # print(img.shape)
-        return self.standardize(img) # had to cut off alpha values
+        return self.standardize(img) 
     
     def get_data(self, path):
         data_gen = ImageDataGenerator(
@@ -117,7 +120,7 @@ class Datasets():
             print('classes for flow: ', classes_for_flow)
         data_gen = data_gen.flow_from_directory(
             path,
-            target_size=(432, 288),
+            target_size=(288, 432),
             class_mode='sparse',
             color_mode='rgba',
             batch_size=10,
@@ -143,3 +146,23 @@ class Datasets():
             print(data_gen.class_indices[img_class])
             print(data_gen.class_indices)
         return data_gen
+    
+    def wav_to_mel(self): #https://github.com/EsratMaria/MusicGenreRecogniton/blob/master/GenreClassificationWithCNN-LSTM.py
+        dataset = []
+        genres = {'blues': 0, 'classical': 1, 'country': 2, 'disco': 3, 'hiphop': 4, 
+            'jazz': 5, 'metal': 6, 'pop': 7, 'reggae': 8, 'rock': 9}
+
+        for genre, genre_number in genres.items():
+            for filename in os.listdir(f'../../gtzan/1.0.0/genres_original/{genre}'):
+                songname = f'../../gtzan/1.0.0/genres_original/{genre}/{filename}'
+                for index in range(14):
+                    try: 
+                        y, sr = librosa.load(songname, mono=True, duration=2, offset=index*2)
+                        ps = librosa.feature.melspectrogram(y=y, sr=sr, hop_length = 256, n_fft = 512, n_mels=64)
+                        ps = librosa.power_to_db(ps**2)
+                        dataset.append( (ps, genre_number) )
+                    except:
+                        print('error')
+                        print(songname)
+        return dataset
+            

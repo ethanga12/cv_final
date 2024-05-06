@@ -4,6 +4,7 @@ import argparse
 import re
 from datetime import datetime
 import tensorflow as tf
+import keras
 
 from genre_classification import GenreClassificationModel
 from skimage.transform import resize
@@ -58,8 +59,21 @@ def train(model, datasets, logs_path):
         for images, labels in datasets.train_data:
             print(images.shape, labels)
             break # Just to check the first batch
-        model.fit(x=datasets.train_data, validation_data=datasets.test_data,
-                epochs=50, callbacks=callback_list, batch_size=None)
+        input_shape = (64, 173, 1)
+        num_classes = 10
+        x_train, y_train = zip(*datasets.train_data)
+        x_test, y_test = zip(*datasets.test_data)
+        x_train = np.array([x.reshape(input_shape) for x in x_train])
+        x_test = np.array([x.reshape(input_shape) for x in x_test])
+        y_train = np.array(y_train)
+        y_test = np.array(y_test)
+
+        print(f"x_train shape: {x_train.shape}")
+        print(f"y_train shape: {y_train.shape}")
+        print(f"x_test shape: {x_test.shape}")
+        print(f"y_test shape: {y_test.shape}")
+        model.fit(x=x_train, y=y_train, validation_data=(x_test, y_test),
+                epochs=50, callbacks=callback_list, batch_size=64)
         
 
 def test(model, test_data):
@@ -69,18 +83,19 @@ def main():
     time_now = datetime.now()
     timestamp = time_now.strftime("%m%d%y-%H%M%S")
     init_epoch = 0
-    datasets = Datasets("../final/data/")
+    datasets = Datasets("../cv_final/data/")
     model = GenreClassificationModel()
-    model(tf.keras.Input(shape=(432, 288, 4)))
+    model(tf.keras.Input(shape=(64, 173, 1)))
 
     model.summary()
 
     model.compile(
         optimizer='adam',
-        loss='sparse_categorical_crossentropy',
+        loss=model.loss_fn,
         metrics=['accuracy']
     )
     logs_path = "logs/" + timestamp
     train(model, datasets, logs_path)
 
 main()
+

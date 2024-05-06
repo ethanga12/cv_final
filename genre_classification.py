@@ -11,7 +11,7 @@ class GenreClassificationModel(tf.keras.Model):
             #imgs are 432x288
              # Block 1
             Conv2D(64, 3, 1, padding="same",
-                   activation="relu", name="block1_conv1"),
+                   activation="relu", name="block1_conv1", input_shape=(64, 173, 1)),
             Conv2D(64, 3, 1, padding="same",
                    activation="relu", name="block1_conv2"),
             MaxPool2D(2, name="block1_pool"),
@@ -49,9 +49,9 @@ class GenreClassificationModel(tf.keras.Model):
         self.head = [ 
             Flatten(),
             Dense(512, activation="relu"),
-            Dropout(0.5),
+            Dropout(0.2),
             Dense(512, activation="relu"),
-            Dropout(0.5),
+            Dropout(0.2),
             Dense(10, activation="softmax")
         ]
        #  for layer in self.vgg16.layers:
@@ -80,4 +80,12 @@ class GenreClassificationModel(tf.keras.Model):
     
     @staticmethod
     def loss_fn(labels, predictions):
-         return tf.keras.losses.sparse_categorical_crossentropy(labels, predictions, from_logits=True)
+       # import pdb; pdb.set_trace()
+       # print('HEREHEREHERE', labels.shape, predictions.shape)
+       # labels = tf.reshape(labels, predictions.shape)
+       
+       # loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+       # loss = loss_fn(labels, predictions)
+       # return loss
+       loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+       return loss(labels, predictions)
