@@ -155,14 +155,17 @@ class Datasets():
         for genre, genre_number in genres.items():
             for filename in os.listdir(f'../../gtzan/1.0.0/genres_original/{genre}'):
                 songname = f'../../gtzan/1.0.0/genres_original/{genre}/{filename}'
-                for index in range(14):
-                    try: 
-                        y, sr = librosa.load(songname, mono=True, duration=2, offset=index*2)
-                        ps = librosa.feature.melspectrogram(y=y, sr=sr, hop_length = 256, n_fft = 512, n_mels=64)
-                        ps = librosa.power_to_db(ps**2)
-                        dataset.append( (ps, genre_number) )
-                    except:
-                        print('error')
-                        print(songname)
+                if songname.endswith('.wav'):
+                    for index in range(14):
+                        try: 
+                            y, sr = librosa.load(songname, mono=True, duration=2, offset=index*2)
+                            ps = librosa.feature.melspectrogram(y=y, sr=sr, hop_length = 256, n_fft = 512, n_mels=64)
+                            ps = librosa.power_to_db(ps**2)
+                            dataset.append( (ps, genre_number) )
+                        except:
+                            print('error')
+                            print(songname)
+                            sys.exit(1)
+                        
         return dataset
             
