@@ -37,11 +37,11 @@ class MusicFeatureExtractorModel:
         #close PyAudio  
         p.terminate() 
 
-    def display_raw_samples(self):
+    def display_waveform_segment(self, start_second, end_second):
         #Zooming in on a plot to show raw sample values
         #Documentation: https://librosa.org/doc/latest/generated/librosa.display.waveshow.html#librosa.display.waveshow
         fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
-        ax.set(xlim=[6.0, 6.01], title='Sample view', ylim=[-1, 1])
+        ax.set(xlim=[start_second, end_second], title='Sample view', ylim=[-1, 1])
         y_harm, y_perc = librosa.effects.hpss(self.x)
         librosa.display.waveshow(self.x, sr=self.sr, ax=ax, marker='.', label='Full signal')
         librosa.display.waveshow(y_harm, sr=self.sr, alpha=0.5, ax=ax2, label='Harmonic')
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     example = MusicFeatureExtractorModel("songs/disco/dancing_queen.wav")
     
     #example.play_song()
-    #example.display_raw_samples()
+    example.display_waveform_segment(6, 6.01)
     #example.display_waveform()
     #example.display_spectrogram()
-    example.display_pitches()
+    #example.display_pitches()
