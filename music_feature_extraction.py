@@ -63,6 +63,16 @@ class MusicFeatureExtractorModel:
         plt.legend()
         plt.show()
 
+    def display_pitches(self):
+        #visualize the music note content.
+        #Documentation: https://medium.com/@swilliam.productions/music-extraction-7eb352d92bff 
+        chroma = librosa.feature.chroma_stft(y=self.x)
+        fig, ax = plt.subplots()
+        img = librosa.display.specshow(chroma, y_axis='chroma', x_axis='time', ax=ax)
+        ax.set(title='Chromagram of music notes')
+        fig.colorbar(img, ax=ax)
+        plt.show()
+
     def display_spectrogram(self):
         #Documentation: https://librosa.org/doc/latest/generated/librosa.display.specshow.html#librosa.display.specshow
 
@@ -123,3 +133,4 @@ if __name__ == "__main__":
     #example.display_raw_samples()
     #example.display_waveform()
     #example.display_spectrogram()
+    example.display_pitches()
