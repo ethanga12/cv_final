@@ -162,7 +162,7 @@ class MusicFeatureExtractorModel:
         # Convert frames to timestamps
         bass_event_timestamps = librosa.frames_to_time(bass_event_frames, sr=self.sr)
         
-        print("Bass event timestamps (seconds):", bass_event_timestamps)
+        return bass_event_timestamps
 
     def extract_jazz(self):
         pass
