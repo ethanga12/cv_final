@@ -100,7 +100,9 @@ class MusicFeatureExtractorModel:
         pass
 
     def extract_disco(self):
-        pass
+        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
+        return librosa.frames_to_time(beats, sr=self.sr)
+
 
     # Vocal Separation to find where singer is singing
     # https://librosa.org/doc/main/auto_examples/plot_vocal_separation.html
@@ -192,6 +194,7 @@ if __name__ == "__main__":
     example = MusicFeatureExtractorModel("songs/disco/dancing_queen.wav")
     example.extract_country()
     #example.play_song()
+    #example.display_waveform_segment(6, 6.01)
     #example.display_waveform()
     #example.display_spectrogram()
     #example.display_pitches()
