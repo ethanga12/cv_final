@@ -32,3 +32,4 @@ from utils import CustomModelSaver, PrintLayerOutput
 
 def classify(): 
     my_model = tf.keras.models.load_model('model.h5')
+    my_model

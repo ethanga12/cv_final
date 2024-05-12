@@ -80,22 +80,23 @@ def test(model, test_data):
     model.evaluate(x=test_data, verbose=2)
 
 def main():
-    time_now = datetime.now()
-    timestamp = time_now.strftime("%m%d%y-%H%M%S")
-    init_epoch = 0
-    datasets = Datasets("../cv_final/data/")
-    model = GenreClassificationModel()
-    model(tf.keras.Input(shape=(64, 173, 1)))
+    # time_now = datetime.now()
+    # timestamp = time_now.strftime("%m%d%y-%H%M%S")
+    # init_epoch = 0
+    # datasets = Datasets("../cv_final/data/")
+    # model = GenreClassificationModel()
+    # model(tf.keras.Input(shape=(64, 173, 1)))
 
-    model.summary()
+    # model.summary()
 
-    model.compile(
-        optimizer='adam',
-        loss=model.loss_fn,
-        metrics=['accuracy']
-    )
-    logs_path = "logs/" + timestamp
-    train(model, datasets, logs_path)
+    # model.compile(
+    #     optimizer='adam',
+    #     loss=model.loss_fn,
+    #     metrics=['accuracy']
+    # )
+    # logs_path = "logs/" + timestamp
+    # train(model, datasets, logs_path)
+    pass
 
 main()
 
