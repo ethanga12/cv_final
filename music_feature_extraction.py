@@ -99,7 +99,9 @@ class MusicFeatureExtractorModel:
         pass
 
     def extract_disco(self):
-        pass
+        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
+        return librosa.frames_to_time(beats, sr=self.sr)
+
 
     def extract_country(self):
         pass
@@ -130,7 +132,7 @@ if __name__ == "__main__":
     example = MusicFeatureExtractorModel("songs/disco/dancing_queen.wav")
     
     #example.play_song()
-    example.display_waveform_segment(6, 6.01)
+    #example.display_waveform_segment(6, 6.01)
     #example.display_waveform()
     #example.display_spectrogram()
-    #example.display_pitches()
+    example.display_pitches()
