@@ -103,7 +103,7 @@ if __name__ == "__main__":
     
     music_extractor = Extractor("songs/disco/dancing_queen.wav")
 
-    disco_features = music_extractor.extract_beat()
+    disco_features = music_extractor.extract_disco()
 
     video_editor = VideoEditModel("video/dance.mp4", "songs/disco/dancing_queen.wav", disco_features, 'test.mp4')
 
