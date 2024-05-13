@@ -28,7 +28,9 @@ import sklearn.model_selection as skms
 import sklearn.preprocessing as skp
 import random
 from preprocess import Datasets
-from utils import CustomModelSaver, PrintLayerOutput
+from utils import CustomModelSaver, PrintLayerOutput, DragDropApp
+import tkinter as tk
+from tkinterdnd2 import DND_FILES, TkinterDnD
 # seed = 12
 # np.random.seed(seed)
 
@@ -86,7 +88,9 @@ def main():
     # datasets = Datasets("../cv_final/data/")
     # model = GenreClassificationModel()
     # model(tf.keras.Input(shape=(64, 173, 1)))
-
+    model = GenreClassificationModel()
+    model(tf.keras.Input(shape=(64, 173, 1)))
+    model.load_weights('../cv_final/your.weights.e014-acc0.8881.h5')    
     # model.summary()
 
     # model.compile(
@@ -96,7 +100,9 @@ def main():
     # )
     # logs_path = "logs/" + timestamp
     # train(model, datasets, logs_path)
-    pass
+    root = TkinterDnD.Tk()
+    app = DragDropApp(root, model)
+    root.mainloop()
 
 main()
 
