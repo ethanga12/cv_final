@@ -4,7 +4,10 @@ import argparse
 import re
 from datetime import datetime
 import tensorflow as tf
+from tensorflow.keras.utils import plot_model
 import keras
+import plotly.graph_objects as go
+
 
 from genre_classification import GenreClassificationModel
 from skimage.transform import resize
@@ -90,7 +93,10 @@ def main():
     # model(tf.keras.Input(shape=(64, 173, 1)))
     model = GenreClassificationModel()
     model(tf.keras.Input(shape=(64, 173, 1)))
-    model.load_weights('../cv_final/your.weights.e014-acc0.8881.h5')    
+    model.load_weights('../cv_final/your.weights.e014-acc0.8881.h5')
+    # model_architecture = tf.keras.Sequential([model.vgg16, model.head]) 
+    # plot_model(model_architecture, to_file='model_architecture.png', show_shapes=True, show_layer_names=True, expand_nested=True, dpi=300)
+
     # model.summary()
 
     # model.compile(

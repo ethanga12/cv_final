@@ -58,6 +58,10 @@ class GenreClassificationModel(tf.keras.Model):
        #        layer.trainable = False
         self.vgg16 = tf.keras.Sequential(self.vgg16, name="vgg_base")
         self.head = tf.keras.Sequential(self.head, name="head")
+
+        
+
+
     
     def call(self, x):
         count = 0
