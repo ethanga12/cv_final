@@ -170,7 +170,8 @@ class MusicFeatureExtractorModel:
         pass
     
     def extract_metal(self):
-        pass
+        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
+        return librosa.frames_to_time(beats, sr=self.sr)
 
     def extract_reggae(self):
         #extract the percussion
