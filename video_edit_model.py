@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from music_feature_extraction import MusicFeatureExtractorModel as Extractor
 import cv2
-import ffmpeg
+from moviepy.editor import VideoFileClip, AudioFileClip
 
 
 class VideoEditModel:
@@ -173,6 +173,7 @@ class VideoEditModel:
 
             kernel_index = current_beat % 55
 
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             frame = cv2.addWeighted(frame, 0.5, np.full((frame.shape[0],frame.shape[1],3), color_filters[kernel_index], np.uint8), 0.5, 0)
             
             frame_resized = cv2.resize(frame, (self.width, self.height))
@@ -186,10 +187,10 @@ class VideoEditModel:
         cv2.destroyAllWindows()
 
         #Here we swap the audio
-        video  = ffmpeg.input("temp.mp4").video # get only video channel
-        audio  = ffmpeg.input(self.audio_path).audio # get only audio channel
-        output = ffmpeg.output(video, audio, self.output_path, vcodec='copy', acodec='aac', strict='experimental')
-        ffmpeg.run(output)
+        video_clip = VideoFileClip("temp.mp4")
+        audio_clip = AudioFileClip(self.audio_path)
+        video_clip = video_clip.set_audio(audio_clip)
+        video_clip.write_videofile(self.output_path, codec='libx264', audio_codec='aac')
     
     def video_edits_metal(self):
         pass
@@ -206,10 +207,10 @@ if __name__ == "__main__":
     
     music_extractor = Extractor("songs/disco/dancing_queen.wav")
 
-    disco_features = music_extractor.extract_disco()
+    feats = music_extractor.extract_jazz()
 
-    video_editor = VideoEditModel("video/dance.mp4", "songs/disco/dancing_queen.wav", disco_features, 'test.mp4')
+    video_editor = VideoEditModel("video/dance.mp4", "songs/disco/dancing_queen.wav", feats, 'test.mp4')
 
-    video_editor.video_edits_disco()
+    video_editor.video_edits_jazz()
 
     
