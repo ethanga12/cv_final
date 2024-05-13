@@ -10,6 +10,7 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 from classify import classify
 from video_edit_model import VideoEditModel
 from music_feature_extraction import MusicFeatureExtractorModel as Extractor
+import cv2
 
 
 class CustomModelSaver(tf.keras.callbacks.Callback):
@@ -200,13 +201,39 @@ class DragDropApp:
                 tk.messagebox.showwarning("Unsupported File", f"Unsupported file type: {file}")
 
 
-    def use_webcam(self):
-        if self.button['text'] == 'Use Webcam':
-            print('using webcam')
-            self.button['text'] = 'Stop Webcam'
-        else:
-            print('stopping webcam')
-            self.button['text'] = 'Use Webcam'
+    def use_webcam(self): #https://www.geeksforgeeks.org/saving-a-video-using-opencv/
+        print('using webcam')
+        vid = cv2.VideoCapture(0) 
+        if (vid.isOpened() == False):  
+            print("Error reading video file") 
+        
+        frame_width = 640
+        frame_height = 480
+        
+        size = (frame_width, frame_height) 
+        result = cv2.VideoWriter('webcam_vid.mp4',  
+                         cv2.VideoWriter_fourcc(*'mp4v'), 
+                         24, size) 
+        
+        
+        while(True): 
+            
+            ret, frame = vid.read() 
+        
+            if ret == True:  
+  
+                result.write(frame) 
+                cv2.imshow('Frame', frame) 
+                if cv2.waitKey(1) & 0xFF == ord('q'): 
+                    break
+        
+            # Break the loop 
+            else: 
+                break
+        vid.release() 
+        result.release()
+        # Destroy all the windows 
+        cv2.destroyAllWindows() 
        
         # mp4_files = self.mp4_listbox.get(0, tk.END)
         # wav_files = self.wav_listbox.get(0, tk.END)
