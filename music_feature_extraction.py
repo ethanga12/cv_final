@@ -97,7 +97,16 @@ class MusicFeatureExtractorModel:
         plt.show()
 
     def extract_pop(self):
-        pass
+        # Separate the bass component from the audio
+        y_harm, _ = librosa.effects.hpss(self.x)
+        
+        # Set a threshold to identify significant pop instruments
+        pop_freq_range = (400, 200)
+        y_bass_filtered = librosa.effects.hpss(y_harm, margin=pop_freq_range)[0]
+        
+        # Convert frames to timestamps
+        return librosa.frames_to_time(y_bass_filtered, sr=self.sr)
+
 
     def extract_disco(self):
         tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
@@ -167,7 +176,13 @@ class MusicFeatureExtractorModel:
         return bass_event_timestamps
 
     def extract_jazz(self):
-        pass
+        y_harm, y_perc = librosa.effects.hpss(self.x)
+        y_total = np.array(sorted(y_harm+y_perc))
+        # Set a threshold to identify significant jazz instruments
+        pop_freq_range = (600, 900)
+        y_bass_filtered = librosa.effects.hpss(y_total, margin=pop_freq_range)[0]
+        # Convert frames to timestamps
+        return librosa.frames_to_time(y_bass_filtered, sr=self.sr)
     
     def extract_metal(self):
         pass

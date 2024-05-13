@@ -22,7 +22,66 @@ class VideoEditModel:
         cv2.destroyAllWindows()
     
     def video_edits_pop(self):
-        pass
+        
+        def generate_ripple_matrix(frame_shape, current_beat):
+            rows, cols = frame_shape[:2]
+            x, y = np.linspace(-1, 1, cols), np.linspace(-1, 1, rows)
+            X, Y = np.meshgrid(x, y)
+            r = np.sqrt(X**2 + Y**2) 
+
+            ripple_frequency = 10  
+            ripple_phase = current_beat * 0.1  # ontrol the animation speed
+
+            ripple = np.sin(ripple_frequency * r - ripple_phase)
+            
+            # Expand ripple to 3 channels
+            ripple_3ch = np.zeros((rows, cols, 3), dtype=np.float32)
+            ripple_3ch[:,:,0] = ripple  # Red channel
+            ripple_3ch[:,:,1] = ripple  # Green channel
+            ripple_3ch[:,:,2] = ripple  # Blue channel
+            
+            # Normalize to 0-255 range
+            ripple_3ch = cv2.normalize(ripple_3ch, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+            return ripple_3ch
+    
+        cap = cv2.VideoCapture(self.video_path)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (640,480))
+
+        frame_number = 0
+        current_time = 0.0
+        current_beat = 0
+
+        while True:
+
+            ret, frame = cap.read()
+
+            if not ret or current_beat >= len(self.features):
+                break
+
+            if current_time > self.features[current_beat]:
+                current_beat += 1
+
+            if current_beat %10 > 0 and current_beat%10 <3:
+                frame = cv2.addWeighted(frame, 0.7, generate_ripple_matrix(frame_shape=frame.shape, current_beat=current_beat), 0.3, 0)
+            else:
+                frame = cv2.addWeighted(frame, 0.7, generate_ripple_matrix(frame_shape=frame.shape, current_beat=-current_beat), 0.3, 0)
+            frame_resized = cv2.resize(frame, (self.width, self.height))
+
+            out.write(frame_resized)
+            frame_number += 1
+            current_time = frame_number / self.fps
+
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+        #Here we swap the audio
+        video  = ffmpeg.input("temp.mp4").video # get only video channel
+        audio  = ffmpeg.input(self.audio_path).audio # get only audio channel
+        output = ffmpeg.output(video, audio, self.output_path, vcodec='copy', acodec='aac', strict='experimental')
+        ffmpeg.run(output)
 
     def video_edits_disco(self):
         cap = cv2.VideoCapture(self.video_path)
@@ -86,7 +145,51 @@ class VideoEditModel:
         pass
 
     def video_edits_jazz(self):
-        pass
+        cap = cv2.VideoCapture(self.video_path)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (640,480))
+
+        frame_number = 0
+        current_time = 0.0
+        current_beat = 0
+
+        color_filters = []
+
+        for i in range(55): 
+            r = g = b = i * 5
+            color_filters.append([r, g, b])
+        
+        color_filters = color_filters + color_filters[::-1]
+
+        while True:
+
+            ret, frame = cap.read()
+
+            if not ret or current_beat >= len(self.features):
+                break
+
+            if current_time > self.features[current_beat]:
+                current_beat += 1
+
+            kernel_index = current_beat % 55
+
+            frame = cv2.addWeighted(frame, 0.5, np.full((frame.shape[0],frame.shape[1],3), color_filters[kernel_index], np.uint8), 0.5, 0)
+            
+            frame_resized = cv2.resize(frame, (self.width, self.height))
+
+            out.write(frame_resized)
+            frame_number += 1
+            current_time = frame_number / self.fps
+
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+        #Here we swap the audio
+        video  = ffmpeg.input("temp.mp4").video # get only video channel
+        audio  = ffmpeg.input(self.audio_path).audio # get only audio channel
+        output = ffmpeg.output(video, audio, self.output_path, vcodec='copy', acodec='aac', strict='experimental')
+        ffmpeg.run(output)
     
     def video_edits_metal(self):
         pass
