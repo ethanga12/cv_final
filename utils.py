@@ -105,14 +105,14 @@ class DragDropApp:
     def __init__(self, root, model):
         self.root = root
         self.root.title("Drag and Drop File Interface")
-        self.root.geometry("600x500")
+        self.root.geometry("600x300")
         
         self.frame = tk.Frame(root, bd=2, relief="sunken", width=600, height=400, bg="lightblue")
         self.frame.pack(fill="both", expand=True)
         self.frame.drop_target_register(DND_FILES)
         self.frame.dnd_bind('<<Drop>>', self.drop)
         
-        self.label = tk.Label(self.frame, text="Drag and drop files here", font=("Helvetica", 16))
+        self.label = tk.Label(self.frame, text="Drag and drop files here (songs must be at least 30 seconds)", font=("Helvetica", 16))
         self.label.pack(pady=10)
         
         # self.mp4_label = tk.Label(self.frame, text="MP4 Files", font=("Helvetica", 14))
@@ -137,8 +137,8 @@ class DragDropApp:
 
                 self.mp4_listbox.insert(tk.END, file)
             elif file.lower().endswith('.wav'):
-                classify(self.model, file)
-                self.wav_listbox.insert(tk.END, file)
+                res = classify(self.model, file)
+                self.wav_listbox.insert(tk.END, 'Genre for ' + file + ': ' + res)
             else:
                 tk.messagebox.showwarning("Unsupported File", f"Unsupported file type: {file}")
 

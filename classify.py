@@ -65,7 +65,7 @@ def classify(model, songname):
     res = np.array(res)
     # print(res)
     genres = {0: 'blues', 1: 'classical', 2: 'country', 3 : 'disco', 4 : 'hiphop', 5: 'jazz', 6: 'metal', 7: 'pop', 8: 'reggae', 9: 'rock'}
-    print(genres[mode(res).mode[0]])
+    return genres[mode(res).mode[0]]
 
 # classify('songs/disco/pop-trap-wav-182460.wav')
 
