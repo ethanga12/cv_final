@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from music_feature_extraction import MusicFeatureExtractorModel as Extractor
 import cv2
-import ffmpeg
+from moviepy.editor import VideoFileClip, AudioFileClip
 
 
 class VideoEditModel:
@@ -27,7 +27,7 @@ class VideoEditModel:
     def video_edits_disco(self):
         cap = cv2.VideoCapture(self.video_path)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (640,480))
+        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (self.width,self.height))
 
         frame_number = 0
         current_time = 0.0
@@ -52,7 +52,7 @@ class VideoEditModel:
             if current_time > self.features[current_beat]:
                 current_beat += 1
 
-            kernel_index = current_beat % 5
+            kernel_index = current_beat % len(color_filters)
 
             frame = cv2.addWeighted(frame, 0.7, np.full((frame.shape[0],frame.shape[1],3), color_filters[kernel_index], np.uint8), 0.3, 0)
             
@@ -67,10 +67,10 @@ class VideoEditModel:
         cv2.destroyAllWindows()
 
         #Here we swap the audio
-        video  = ffmpeg.input("temp.mp4").video # get only video channel
-        audio  = ffmpeg.input(self.audio_path).audio # get only audio channel
-        output = ffmpeg.output(video, audio, self.output_path, vcodec='copy', acodec='aac', strict='experimental')
-        ffmpeg.run(output)
+        video_clip = VideoFileClip("temp.mp4")
+        audio_clip = AudioFileClip(self.audio_path)
+        video_clip = video_clip.set_audio(audio_clip)
+        video_clip.write_videofile(self.output_path, codec='libx264', audio_codec='aac')
 
 
     def video_edits_country(self):
@@ -89,7 +89,62 @@ class VideoEditModel:
         pass
     
     def video_edits_metal(self):
-        pass
+        #For metal
+        cap = cv2.VideoCapture(self.video_path)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (self.width,self.height))
+
+        frame_number = 0
+        current_time = 0.0
+        current_beat = 0
+
+        bottom_sobel_kernel = np.array([[-1, -2, -1],
+                   [0, 0, 0],
+                   [1, 2, 1]])
+        top_sobel_kernel = np.array([[1, 2, 1],
+                   [0, 0, 0],
+                   [-1, -2, -1]])
+        left_sobel_kernel = np.array([[1, 0, -1],
+                   [2, 0, -2],
+                   [1, 0, -1]])
+        right_sobel_kernel = np.array([[-1, 0, 1],
+                   [-2, 0, 2],
+                   [-1, 0, 1]])
+
+
+
+        filters = [top_sobel_kernel, left_sobel_kernel, bottom_sobel_kernel, right_sobel_kernel]
+
+        while True:
+
+            ret, frame = cap.read()
+
+            if not ret or current_beat >= len(self.features):
+                break
+
+            if current_time > self.features[current_beat]:
+                current_beat += 1
+
+            kernel_index = current_beat % len(filters)
+
+            frame = cv2.filter2D(frame, -1, filters[kernel_index])
+
+            frame = cv2.resize(frame, (self.width, self.height))
+
+            out.write(frame)
+            frame_number += 1
+            current_time = frame_number / self.fps
+
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+        #Here we swap the audio
+        video_clip = VideoFileClip("temp.mp4")
+        audio_clip = AudioFileClip(self.audio_path)
+        video_clip = video_clip.set_audio(audio_clip)
+        video_clip.write_videofile(self.output_path, codec='libx264', audio_codec='aac')
+
 
     def video_edits_reggae(self):
         pass
@@ -101,12 +156,14 @@ class VideoEditModel:
 if __name__ == "__main__":
     # This code block will only execute if the file is executed directly, not imported
     
-    music_extractor = Extractor("songs/disco/dancing_queen.wav")
+    music_extractor = Extractor("songs/metal/Psychosocial.wav")
 
-    disco_features = music_extractor.extract_disco()
 
-    video_editor = VideoEditModel("video/dance.mp4", "songs/disco/dancing_queen.wav", disco_features, 'test.mp4')
+    metal_features = music_extractor.extract_metal()
 
-    video_editor.video_edits_disco()
 
+    video_editor = VideoEditModel("video/dance.mp4", "songs/metal/Psychosocial.wav", metal_features, 'test2.mp4')
+
+
+    video_editor.video_edits_metal()
     

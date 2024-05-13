@@ -8,6 +8,7 @@ from tensorflow import keras
 from scipy.stats import mode
 from genre_classification import GenreClassificationModel
 from skimage.transform import resize
+from video_edit_model import VideoEditModel
 
 
 from skimage.io import imread
