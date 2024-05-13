@@ -142,8 +142,8 @@ class MusicFeatureExtractorModel:
 
     def extract_rock(self):
         #Check for peaks using scipy. Can play with distance but this one gives us a "peak" every few seconds
-        peaks, _ = find_peaks(self.x, distance=200000)
-        return {peak_index: "hit" for peak_index in peaks}
+        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
+        return librosa.frames_to_time(beats, sr=self.sr)
 
     def extract_classical(self):
         pass
@@ -152,19 +152,12 @@ class MusicFeatureExtractorModel:
         # Separate the bass component from the audio
         y_harm, _ = librosa.effects.hpss(self.x)
         
-        # Calculate the onset strength envelope for the bass component
-        onset_env = librosa.onset.onset_strength(y=y_harm, sr=self.sr)
-        
         # Set a threshold to identify significant bass events
-        threshold = 0.5 * np.max(onset_env)  # Adjust threshold as needed
-        
-        # Find frames where the onset strength exceeds the threshold
-        bass_event_frames = np.where(onset_env > threshold)[0]
+        bass_freq_range = (20, 200)
+        y_bass_filtered = librosa.effects.hpss(y_harm, margin=bass_freq_range)[0]
         
         # Convert frames to timestamps
-        bass_event_timestamps = librosa.frames_to_time(bass_event_frames, sr=self.sr)
-        
-        return bass_event_timestamps
+        return librosa.frames_to_time(y_bass_filtered, sr=self.sr)
 
     def extract_jazz(self):
         pass
@@ -182,9 +175,7 @@ class MusicFeatureExtractorModel:
         _, beats = librosa.beat.beat_track(onset_envelope=onset_env, sr=self.sr)
         
         # Convert beat frames to timestamps
-        beat_timestamps = librosa.frames_to_time(beats, sr=self.sr)
-        
-        return beat_timestamps
+        return librosa.frames_to_time(beats, sr=self.sr)
 
     def extract_blues(self):
         pass  

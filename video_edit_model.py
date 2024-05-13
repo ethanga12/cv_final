@@ -83,7 +83,51 @@ class VideoEditModel:
         pass
 
     def video_edits_hiphop(self):
-        pass
+        cap = cv2.VideoCapture(self.video_path)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (640,480))
+
+        frame_number = 0
+        current_time = 0.0
+        current_beat = 0
+        time_limit = 24
+        timer = 0
+
+        gaussian_blur_filter = [[1/16, 1/8, 1/16], [1/8, 1/4, 1/8], [1/16, 1/8, 1/16]]
+
+        while True:
+            ret, frame = cap.read()
+
+            if not ret or current_beat >= len(self.features):
+                break
+
+            if current_time > self.features[current_beat]:
+                current_beat += 1
+
+            left_right = 1 if left_right == 0 else 0
+
+            frame_blurred = cv2.filter2D(frame, -1, gaussian_blur_filter)
+            frame_resized = cv2.resize(frame_blurred, (self.width, self.height))
+            timer += 1
+            if timer >= time_limit:
+                timer = 0
+                frame_resized = cv2.resize(frame, (self.width, self.height))
+
+            
+
+            out.write(frame_resized)
+            frame_number += 1
+            current_time = frame_number / self.fps
+
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+        #Here we swap the audio
+        video  = ffmpeg.input("temp.mp4").video # get only video channel
+        audio  = ffmpeg.input(self.audio_path).audio # get only audio channel
+        output = ffmpeg.output(video, audio, self.output_path, vcodec='copy', acodec='aac', strict='experimental')
+        ffmpeg.run(output)
 
     def video_edits_jazz(self):
         pass
