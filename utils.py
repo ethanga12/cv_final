@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 import tkinter as tk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from classify import classify
+from video_edit_model import VideoEditModel
 
 
 class CustomModelSaver(tf.keras.callbacks.Callback):
@@ -133,6 +134,7 @@ class DragDropApp:
         files = self.root.tk.splitlist(event.data)
         for file in files:
             if file.lower().endswith('.mp4'):
+
                 self.mp4_listbox.insert(tk.END, file)
             elif file.lower().endswith('.wav'):
                 classify(self.model, file)
