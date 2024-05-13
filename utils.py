@@ -5,6 +5,10 @@ import sklearn.metrics
 import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
+import tkinter as tk
+from tkinterdnd2 import DND_FILES, TkinterDnD
+from classify import classify
+
 
 class CustomModelSaver(tf.keras.callbacks.Callback):
     """ Custom Keras callback for saving weights of networks. """
@@ -95,3 +99,46 @@ class PrintLayerOutput(tf.keras.callbacks.Callback):
         # Get the output for this batch
         layer_output = output_func([input_data])
         print("Output of layer at epoch {}: {}".format(epoch, layer_output))
+
+class DragDropApp:
+    def __init__(self, root, model):
+        self.root = root
+        self.root.title("Drag and Drop File Interface")
+        self.root.geometry("600x500")
+        
+        self.frame = tk.Frame(root, bd=2, relief="sunken", width=600, height=400)
+        self.frame.pack(fill="both", expand=True)
+        self.frame.drop_target_register(DND_FILES)
+        self.frame.dnd_bind('<<Drop>>', self.drop)
+        
+        self.label = tk.Label(self.frame, text="Drag and drop files here", font=("Helvetica", 16))
+        self.label.pack(pady=10)
+        
+        self.mp4_label = tk.Label(self.frame, text="MP4 Files", font=("Helvetica", 14))
+        self.mp4_label.pack(pady=5)
+        self.mp4_listbox = tk.Listbox(self.frame, width=80, height=5)
+        self.mp4_listbox.pack(pady=5)
+        
+        self.wav_label = tk.Label(self.frame, text="WAV Files", font=("Helvetica", 14))
+        self.wav_label.pack(pady=5)
+        self.wav_listbox = tk.Listbox(self.frame, width=80, height=5)
+        self.wav_listbox.pack(pady=5)
+        self.model = model
+
+    def drop(self, event):
+        files = self.root.tk.splitlist(event.data)
+
+        files = self.root.tk.splitlist(event.data)
+        for file in files:
+            if file.lower().endswith('.mp4'):
+                self.mp4_listbox.insert(tk.END, file)
+            elif file.lower().endswith('.wav'):
+                classify(self.model, file)
+                self.wav_listbox.insert(tk.END, file)
+            else:
+                tk.messagebox.showwarning("Unsupported File", f"Unsupported file type: {file}")
+
+        # for file in files:
+        #     print(file)
+           
+        #     self.file_listbox.insert(tk.END, file)
