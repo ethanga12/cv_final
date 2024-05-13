@@ -95,37 +95,19 @@ class MusicFeatureExtractorModel:
         fig.colorbar(img, ax=ax, format="%+2.f dB")
         plt.show()
 
-    def extract_pop(self):
-        pass
-
-    def extract_disco(self):
+    def extract_beat(self):
         tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
         return librosa.frames_to_time(beats, sr=self.sr)
 
 
-    def extract_country(self):
+    def extract_voice(self):
         pass
 
-    def extract_rock(self):
+    def extract_bass(self):
         pass
 
-    def extract_classical(self):
+    def extract_percussion(self):
         pass
-
-    def extract_hiphop(self):
-        pass
-
-    def extract_jazz(self):
-        pass
-    
-    def extract_metal(self):
-        pass
-
-    def extract_reggae(self):
-        pass
-
-    def extract_blues(self):
-        pass  
 
 if __name__ == "__main__":
     # This code block will only execute if the file is executed directly, not imported
