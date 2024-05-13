@@ -27,7 +27,7 @@ class VideoEditModel:
     def video_edits_disco(self):
         cap = cv2.VideoCapture(self.video_path)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (640,480))
+        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (self.width,self.height))
 
         frame_number = 0
         current_time = 0.0
