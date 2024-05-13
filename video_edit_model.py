@@ -89,6 +89,7 @@ class VideoEditModel:
         pass
     
     def video_edits_metal(self):
+        #For metal
         cap = cv2.VideoCapture(self.video_path)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (self.width,self.height))
