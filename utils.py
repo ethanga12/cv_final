@@ -9,6 +9,7 @@ import tkinter as tk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from classify import classify
 from video_edit_model import VideoEditModel
+from music_feature_extraction import MusicFeatureExtractorModel as Extractor
 
 
 class CustomModelSaver(tf.keras.callbacks.Callback):
@@ -129,16 +130,71 @@ class DragDropApp:
         self.model = model
 
     def drop(self, event):
-        # files = self.root.tk.splitlist(event.data)
-
         files = self.root.tk.splitlist(event.data)
+        music_extractor = None
+        genre = ""
+        songFile = ''
         for file in files:
             if file.lower().endswith('.mp4'):
-
+                if genre == "blues":
+                    features = music_extractor.extract_blues()
+                    video_editor = VideoEditModel("video/dance.mp4", songFile, features, 'res.mp4')
+                    video_editor.video_edits_blues()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif genre == "reggae":
+                    features = music_extractor.extract_reggae()
+                    video_editor = VideoEditModel("video/dance.mp4", songFile, features, 'res.mp4')
+                    video_editor.video_edits_reggae()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif genre == "metal":
+                    metal_features = music_extractor.extract_metal()
+                    video_editor = VideoEditModel("video/dance.mp4", "songs/metal/Psychosocial.wav", metal_features, 'res2.mp4')
+                    video_editor.video_edits_metal()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif genre == "pop":
+                    features = music_extractor.extract_pop()
+                    video_editor = VideoEditModel("video/dance.mp4", songFile, features, 'res.mp4')
+                    video_editor.video_edits_pop()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif genre == "jazz":
+                    features = music_extractor.extract_jazz()
+                    video_editor = VideoEditModel("video/dance.mp4", songFile, features, 'res.mp4')
+                    video_editor.video_edits_jazz()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif genre == "hiphop":
+                    features = music_extractor.extract_hiphop()
+                    video_editor = VideoEditModel("video/dance.mp4", songFile, features, 'res.mp4')
+                    video_editor.video_edits_hiphop()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif genre == "rock":
+                    features = music_extractor.extract_rock()
+                    video_editor = VideoEditModel("video/dance.mp4", songFile, features, 'res.mp4')
+                    video_editor.video_edits_rock()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif genre == "classical":
+                    features = music_extractor.extract_classical()
+                    video_editor = VideoEditModel("video/dance.mp4", songFile, features, 'res.mp4')
+                    video_editor.video_edits_classical()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif genre == "country":
+                    features = music_extractor.extract_country()
+                    video_editor = VideoEditModel("video/dance.mp4", songFile, features, 'res.mp4')
+                    video_editor.video_edits_country()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif genre == "disco":
+                    features = music_extractor.extract_disco()
+                    video_editor = VideoEditModel("video/dance.mp4", songFile, features, 'res.mp4')
+                    video_editor.video_edits_disco()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                else:
+                    self.wav_label['text'] = "Please upload a wav file first."
                 self.mp4_listbox.insert(tk.END, file)
             elif file.lower().endswith('.wav'):
+                songFile = file
                 res = classify(self.model, file)
+                genre = res
                 self.wav_listbox.insert(tk.END, 'Genre for ' + file + ': ' + res)
+                music_extractor = Extractor(file)
             else:
                 tk.messagebox.showwarning("Unsupported File", f"Unsupported file type: {file}")
 
