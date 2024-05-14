@@ -3,6 +3,7 @@ import numpy as np
 from music_feature_extraction import MusicFeatureExtractorModel as Extractor
 import cv2
 from moviepy.editor import VideoFileClip, AudioFileClip
+import random
 
 
 class VideoEditModel:
@@ -74,7 +75,64 @@ class VideoEditModel:
 
 
     def video_edits_country(self):
-        pass
+        cap = cv2.VideoCapture(self.video_path)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (640,480))
+
+        frame_number = 0
+        current_time = 0.0
+        current_beat = 0
+        time_limit = self.fps / 4
+        timer = 0
+
+        while True:
+            ret, frame = cap.read()
+
+            left_shift = np.zeros((5, 5))
+            right_shift = np.zeros((5, 5))
+            left_shift[2, 4] = 1
+            right_shift[2, 0] = 1
+
+            if not ret or current_beat >= len(self.features):
+                break
+
+            if current_time > self.features[current_beat]: #if we hit a feature, start a timer for fps frames
+                timer = time_limit
+                current_beat += 1
+            
+            # Convert frame to sepia
+            sepia_matrix = np.array([[0.131, 0.534, 0.272],
+                             [0.168, 0.686, 0.349],
+                             [0.189, 0.769, 0.393]])
+            sepia = cv2.transform(frame, sepia_matrix)
+            
+            if timer > 0:
+                random_bit = random.randint(0, 1)
+                if random_bit == 0: 
+                    sepia = cv2.filter2D(sepia, -1, left_shift)
+                else:
+                    sepia = cv2.filter2D(sepia, -1, right_shift)
+                # Resize the cropped frame back to original size
+                frame_resized = cv2.resize(sepia, (self.width, self.height))
+                out.write(frame_resized)
+                timer -= 1
+            else:
+                frame_resized = cv2.resize(sepia, (self.width, self.height))
+                out.write(frame_resized)
+
+            frame_number += 1
+            current_time = frame_number / self.fps
+
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+        #Here we swap the audio
+        video_clip = VideoFileClip("temp.mp4")
+        audio_clip = AudioFileClip(self.audio_path)
+        video_clip = video_clip.set_audio(audio_clip)
+        video_clip.write_videofile(self.output_path, codec='libx264', audio_codec='aac')
+
 
     def video_edits_rock(self):
         cap = cv2.VideoCapture(self.video_path)
@@ -86,9 +144,18 @@ class VideoEditModel:
         current_beat = 0
         time_limit = self.fps / 4
         timer = 0
-        zoom_duration = self.fps // 4  # Duration for zoom-in and zoom-out
-        zoom_in_factor = 1.05  # Zoom factor for zoom-in effect
-        zoom_out_factor = 1 / zoom_in_factor  # Zoom factor for zoom-out effect
+        sobel_x = np.array([
+            [-1, 0, 1],
+            [-2, 0, 2],
+            [-1, 0, 1]
+        ])
+
+        # Sobel Y kernel (vertical edge detection)
+        sobel_y = np.array([
+            [-1, -2, -1],
+            [ 0,  0,  0],
+            [ 1,  2,  1]
+        ])
 
         while True:
             ret, frame = cap.read()
@@ -96,25 +163,24 @@ class VideoEditModel:
             if not ret or current_beat >= len(self.features):
                 break
 
-            if current_time > self.features[current_beat]: #if we hit a feature, start a timer for fps frames
+            if current_time > self.features[current_beat][0]: #if we hit a feature, start a timer for fps frames
                 timer = time_limit
                 current_beat += 1
             
-            if timer > 0:
-                if timer > zoom_duration // 2:
-                # Calculate zoom-in factor for current frame
-                    zoom_factor = 1 + (zoom_in_factor - 1) * (1 - (timer - zoom_duration // 2) / (zoom_duration // 2))
-                else:
-                    # Calculate zoom-out factor for current frame
-                    zoom_factor = 1 + (zoom_out_factor - 1) * (1 - timer / (zoom_duration // 2))
+            # Convert frame to grayscale
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
 
-                # Calculate the coordinates for cropping the frame
-                crop_x = int((frame.shape[1] - self.width / zoom_factor) / 2)
-                crop_y = int((frame.shape[0] - self.height / zoom_factor) / 2)
-                cropped_frame = frame[crop_y:crop_y + int(self.height / zoom_factor), crop_x:crop_x + int(self.width / zoom_factor)]
+            grain_texture = cv2.imread('grain.png')
+            grain_texture = cv2.resize(grain_texture, (frame.shape[1], frame.shape[0]))
+            frame = cv2.addWeighted(frame, 0.85, grain_texture, 0.15, 0.0)
+            
+            if timer > 0:
+                sobel_x_output = cv2.filter2D(frame, -1, sobel_x)
+                frame = cv2.filter2D(sobel_x_output, -1, sobel_y)
 
                 # Resize the cropped frame back to original size
-                frame_resized = cv2.resize(cropped_frame, (self.width, self.height))
+                frame_resized = cv2.resize(frame, (self.width, self.height))
                 out.write(frame_resized)
                 timer -= 1
             else:
@@ -129,10 +195,10 @@ class VideoEditModel:
         cv2.destroyAllWindows()
 
         #Here we swap the audio
-        #video  = ffmpeg.input("temp.mp4").video # get only video channel
-        #audio  = ffmpeg.input(self.audio_path).audio # get only audio channel
-        #output = ffmpeg.output(video, audio, self.output_path, vcodec='copy', acodec='aac', strict='experimental')
-        #ffmpeg.run(output)
+        video_clip = VideoFileClip("temp.mp4")
+        audio_clip = AudioFileClip(self.audio_path)
+        video_clip = video_clip.set_audio(audio_clip)
+        video_clip.write_videofile(self.output_path, codec='libx264', audio_codec='aac')
 
     def video_edits_classical(self):
         pass
@@ -252,10 +318,10 @@ class VideoEditModel:
 if __name__ == "__main__":
     # This code block will only execute if the file is executed directly, not imported
     
-    music_extractor = Extractor("songs/reggae/BuffaloSoldier.wav")
+    music_extractor = Extractor("songs/country/country_girl.wav")
 
-    reggae_features = music_extractor.extract_reggae()
+    country_features = music_extractor.extract_country()
 
-    video_editor = VideoEditModel("video/dance.mp4", "songs/reggae/BuffaloSoldier.wav", reggae_features, 'test.mp4')
+    video_editor = VideoEditModel("video/dance.mp4", "songs/country/country_girl.wav", country_features, 'test.mp4')
 
-    video_editor.video_edits_reggae()
+    video_editor.video_edits_country()

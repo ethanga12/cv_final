@@ -108,42 +108,17 @@ class MusicFeatureExtractorModel:
     # Vocal Separation to find where singer is singing
     # https://librosa.org/doc/main/auto_examples/plot_vocal_separation.html
     def extract_country(self):
-        '''
-        S_full, _ = librosa.magphase(librosa.stft(self.x))
-        S_filter = librosa.decompose.nn_filter(S_full,
-                                       aggregate=np.median,
-                                       metric='cosine',
-                                       width=int(librosa.time_to_frames(2, sr=self.sr)))
-        S_filter = np.minimum(S_full, S_filter)
-        margin_v = 10
-        power = 2
-
-        mask_v = librosa.util.softmask(S_full - S_filter,
-                                    margin_v * S_filter,
-                                    power=power)
-        S_foreground = mask_v * S_full
-
-        # Calculate the sum of magnitudes across frequency bins for each time frame
-        energy_per_frame = np.sum(S_foreground, axis=0)
-        
-        # Threshold to determine when the singer is singing
-        energy_threshold = 0.5 * np.max(energy_per_frame)  # Adjust the threshold as needed
-        
-        # Find the frames where energy exceeds the threshold
-        singing_frames = np.where(energy_per_frame > energy_threshold)[0]
-        
-        # Convert frames to timestamps
-        timestamps = librosa.frames_to_time(singing_frames, sr=self.sr)
-        
-        print("Timestamps where the singer is singing (seconds):", timestamps)
-        print(len(timestamps))
-        '''
+        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
+        return librosa.frames_to_time(beats, sr=self.sr)
 
 
 
     def extract_rock(self):
-        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
-        return librosa.frames_to_time(beats, sr=self.sr)
+        loudness = librosa.feature.rms(y=self.x, frame_length=2048, hop_length=512, center=True, pad_mode='constant')[0]
+        loudness = (loudness - np.min(loudness)) / (np.max(loudness) - np.min(loudness))
+        loudness_timesteps = librosa.frames_to_time(range(len(self.x)), hop_length=512, sr=self.sr)
+        features = [(t, l) for t, l in zip(loudness_timesteps, loudness) if l > 0.85*np.max(loudness)]
+        return features
 
     def extract_classical(self):
         pass
