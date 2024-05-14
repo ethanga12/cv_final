@@ -138,15 +138,17 @@ class MusicFeatureExtractorModel:
         print(len(timestamps))
         '''
 
-
-
     def extract_rock(self):
         #Check for peaks using scipy. Can play with distance but this one gives us a "peak" every few seconds
         peaks, _ = find_peaks(self.x, distance=200000)
         return {peak_index: "hit" for peak_index in peaks}
 
     def extract_classical(self):
-        pass
+        loudness = librosa.feature.rms(y=self.x, frame_length=2048, hop_length=512, center=True, pad_mode='constant')[0]
+        loudness = (loudness - np.min(loudness)) / (np.max(loudness) - np.min(loudness))
+        loudness_timesteps = librosa.frames_to_time(range(len(self.x)), hop_length=512, sr=self.sr)
+        features = list(zip(loudness_timesteps, loudness))
+        return features
 
     def extract_hiphop(self):
         # Separate the bass component from the audio
@@ -192,8 +194,8 @@ class MusicFeatureExtractorModel:
 
 if __name__ == "__main__":
     # This code block will only execute if the file is executed directly, not imported
-    example = MusicFeatureExtractorModel("songs/disco/dancing_queen.wav")
-    example.extract_country()
+    example = MusicFeatureExtractorModel("songs/classical/luisi_chopin_scherzo.wav")
+    example.extract_classical()
     #example.play_song()
     #example.display_waveform_segment(6, 6.01)
     #example.display_waveform()
