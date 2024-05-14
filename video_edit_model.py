@@ -107,7 +107,8 @@ class VideoEditModel:
             sepia = cv2.transform(frame, sepia_matrix)
             
             if timer > 0:
-                if random.randint(0, 1) == 0:
+                random_bit = random.randint(0, 1)
+                if random_bit == 0: 
                     sepia = cv2.filter2D(sepia, -1, left_shift)
                 else:
                     sepia = cv2.filter2D(sepia, -1, right_shift)
@@ -143,7 +144,18 @@ class VideoEditModel:
         current_beat = 0
         time_limit = self.fps / 4
         timer = 0
-        noise_kernel = np.random.rand(3, 3)
+        sobel_x = np.array([
+            [-1, 0, 1],
+            [-2, 0, 2],
+            [-1, 0, 1]
+        ])
+
+        # Sobel Y kernel (vertical edge detection)
+        sobel_y = np.array([
+            [-1, -2, -1],
+            [ 0,  0,  0],
+            [ 1,  2,  1]
+        ])
 
         while True:
             ret, frame = cap.read()
@@ -164,7 +176,8 @@ class VideoEditModel:
             frame = cv2.addWeighted(frame, 0.85, grain_texture, 0.15, 0.0)
             
             if timer > 0:
-                frame = cv2.filter2D(frame, -1, noise_kernel)
+                sobel_x_output = cv2.filter2D(frame, -1, sobel_x)
+                frame = cv2.filter2D(sobel_x_output, -1, sobel_y)
 
                 # Resize the cropped frame back to original size
                 frame_resized = cv2.resize(frame, (self.width, self.height))
@@ -305,10 +318,10 @@ class VideoEditModel:
 if __name__ == "__main__":
     # This code block will only execute if the file is executed directly, not imported
     
-    music_extractor = Extractor("songs/rock/in_bloom.wav")
+    music_extractor = Extractor("songs/country/country_girl.wav")
 
-    rock_features = music_extractor.extract_rock()
+    country_features = music_extractor.extract_country()
 
-    video_editor = VideoEditModel("video/dance.mp4", "songs/rock/in_bloom.wav", rock_features, 'test.mp4')
+    video_editor = VideoEditModel("video/dance.mp4", "songs/country/country_girl.wav", country_features, 'test.mp4')
 
-    video_editor.video_edits_rock()
+    video_editor.video_edits_country()
