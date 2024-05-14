@@ -146,7 +146,11 @@ class MusicFeatureExtractorModel:
         return {peak_index: "hit" for peak_index in peaks}
 
     def extract_classical(self):
-        pass
+        loudness = librosa.feature.rms(y=self.x, frame_length=2048, hop_length=512, center=True, pad_mode='constant')[0]
+        loudness = (loudness - np.min(loudness)) / (np.max(loudness) - np.min(loudness))
+        loudness_timesteps = librosa.frames_to_time(range(len(self.x)), hop_length=512, sr=self.sr)
+        features = list(zip(loudness_timesteps, loudness))
+        return features
 
     def extract_hiphop(self):
         # Separate the bass component from the audio
