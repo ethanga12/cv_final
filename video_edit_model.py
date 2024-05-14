@@ -80,7 +80,69 @@ class VideoEditModel:
         pass
 
     def video_edits_classical(self):
-        pass
+        cap = cv2.VideoCapture(self.video_path)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter("temp.mp4", fourcc, self.fps, (self.width,self.height))
+
+        frame_number = 0
+        current_time = 0.0
+        current_feature = 0
+
+        while True:
+           ret, frame = cap.read()
+
+
+           if not ret:
+               break
+
+
+           while current_time > self.features[current_feature][0]:
+               current_feature += 1
+               if current_feature >= len(self.features):
+                   break
+          
+           if current_feature >= len(self.features):
+               break
+          
+           # Calculate border size based on x
+           max_border_size = min(frame.shape[0], frame.shape[1]) // 2
+           border_size = int(max_border_size * self.features[current_feature][1])
+
+
+           # Add border to the image
+           bordered_image = cv2.copyMakeBorder(frame, border_size, border_size, border_size, border_size, cv2.BORDER_CONSTANT, value=(255, 255, 255))
+
+
+           # Apply a sepia filter
+           sepia_filter = np.array([[0.272, 0.534, 0.131],
+                            [0.349, 0.686, 0.168],
+                            [0.393, 0.769, 0.189]])
+           sepia_image = cv2.transform(bordered_image, sepia_filter)
+
+
+           # Clip the values to be in the correct range
+           sepia_image = np.clip(sepia_image, 0, 255)
+
+
+           frame_resized = cv2.resize(sepia_image, (self.width, self.height))
+
+
+           out.write(frame_resized)
+           frame_number += 1
+           current_time = frame_number / self.fps
+
+
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+
+        #Here we swap the audio
+        video_clip = VideoFileClip("temp.mp4")
+        audio_clip = AudioFileClip(self.audio_path)
+        video_clip = video_clip.set_audio(audio_clip)
+        video_clip.write_videofile(self.output_path, codec='libx264', audio_codec='aac')
+
 
     def video_edits_hiphop(self):
         pass
@@ -156,14 +218,11 @@ class VideoEditModel:
 if __name__ == "__main__":
     # This code block will only execute if the file is executed directly, not imported
     
-    music_extractor = Extractor("songs/metal/Psychosocial.wav")
+    music_extractor = Extractor("songs/classical/luisi_chopin_scherzo.wav")
 
+    classical_features = music_extractor.extract_classical()
 
-    metal_features = music_extractor.extract_metal()
+    video_editor = VideoEditModel("video/dance.mp4", "songs/classical/luisi_chopin_scherzo.wav", classical_features, 'test2.mp4')
 
-
-    video_editor = VideoEditModel("video/dance.mp4", "songs/metal/Psychosocial.wav", metal_features, 'test2.mp4')
-
-
-    video_editor.video_edits_metal()
+    video_editor.video_edits_classical()
     
