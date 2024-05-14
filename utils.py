@@ -200,18 +200,14 @@ class DragDropApp:
                          cv2.VideoWriter_fourcc(*'mp4v'), 
                          24, size) 
         
-        
         while(True): 
-            
             ret, frame = vid.read() 
-        
             if ret == True:  
   
                 result.write(frame) 
                 cv2.imshow('Frame', frame) 
                 if cv2.waitKey(1) & 0xFF == ord('q'): 
                     break
-        
             else: 
                 break
         vid.release() 

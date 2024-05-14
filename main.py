@@ -63,13 +63,30 @@ def train(model, datasets, logs_path):
         print(f"x_test shape: {x_test.shape}")
         print(f"y_test shape: {y_test.shape}")
         model.fit(x=x_train, y=y_train, validation_data=(x_test, y_test),
-                epochs=50, callbacks=callback_list, batch_size=64)
+                epochs=15, callbacks=callback_list, batch_size=64)
         
 
 def test(model, test_data):
     model.evaluate(x=test_data, verbose=2)
 
 def main():
+    # time_now = datetime.now()
+    # timestamp = time_now.strftime("%m%d%y-%H%M%S")
+    # init_epoch = 0
+    # datasets = Datasets("../cv_final")
+    # model = GenreClassificationModel()
+    # model(tf.keras.Input(shape=(64, 173, 1)))
+    # model.summary()
+
+    # model.compile(
+    #     optimizer='adam',
+    #     loss=model.loss_fn,
+    #     metrics=['accuracy']
+    # )
+    # logs_path = "logs/" + timestamp
+    # train(model, datasets, logs_path)
+
+
     model = GenreClassificationModel()
     model(tf.keras.Input(shape=(64, 173, 1)))
     model.load_weights('../cv_final/your.weights.e014-acc0.8881.h5')
