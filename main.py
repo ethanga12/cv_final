@@ -4,7 +4,10 @@ import argparse
 import re
 from datetime import datetime
 import tensorflow as tf
+from tensorflow.keras.utils import plot_model
 import keras
+import plotly.graph_objects as go
+
 
 from genre_classification import GenreClassificationModel
 from skimage.transform import resize
@@ -28,34 +31,21 @@ import sklearn.model_selection as skms
 import sklearn.preprocessing as skp
 import random
 from preprocess import Datasets
-from utils import CustomModelSaver, PrintLayerOutput
-# seed = 12
-# np.random.seed(seed)
+from utils import CustomModelSaver, PrintLayerOutput, DragDropApp
+import tkinter as tk
+from tkinterdnd2 import DND_FILES, TkinterDnD
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 def train(model, datasets, logs_path):
     with tf.device('GPU'):
         callback_list = [
-            # tf.keras.callbacks.EarlyStopping(
-            #     monitor='val_loss',
-            #     patience=5,
-            #     restore_best_weights=True),
-            # tf.keras.callbacks.ModelCheckpoint(
-            #     filepath="best_model.h5",
-            #     monitor='val_loss',
-            #     save_best_only=True,
-            #     format="tf"),
             CustomModelSaver('checkpoints', max_num_weights=5),
-            # PrintLayerOutput(), THIS DOESN'T WORK AS IS 
             tf.keras.callbacks.TensorBoard(
                 log_dir="logs",
                 histogram_freq=1,
                 profile_batch=0)
             ]
-        # images, labels = next(iter(datasets.train_data))
-        # print(images, labels)
-        # tf.print(datasets.test_data)
         for images, labels in datasets.train_data:
             print(images.shape, labels)
             break # Just to check the first batch
@@ -73,7 +63,7 @@ def train(model, datasets, logs_path):
         print(f"x_test shape: {x_test.shape}")
         print(f"y_test shape: {y_test.shape}")
         model.fit(x=x_train, y=y_train, validation_data=(x_test, y_test),
-                epochs=50, callbacks=callback_list, batch_size=64)
+                epochs=15, callbacks=callback_list, batch_size=64)
         
 
 def test(model, test_data):
@@ -83,10 +73,9 @@ def main():
     # time_now = datetime.now()
     # timestamp = time_now.strftime("%m%d%y-%H%M%S")
     # init_epoch = 0
-    # datasets = Datasets("../cv_final/data/")
+    # datasets = Datasets("../cv_final")
     # model = GenreClassificationModel()
     # model(tf.keras.Input(shape=(64, 173, 1)))
-
     # model.summary()
 
     # model.compile(
@@ -96,7 +85,14 @@ def main():
     # )
     # logs_path = "logs/" + timestamp
     # train(model, datasets, logs_path)
-    pass
+
+
+    model = GenreClassificationModel()
+    model(tf.keras.Input(shape=(64, 173, 1)))
+    model.load_weights('../cv_final/your.weights.e014-acc0.8881.h5')
+    root = TkinterDnD.Tk()
+    app = DragDropApp(root, model)
+    root.mainloop()
 
 main()
 

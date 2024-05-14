@@ -121,7 +121,11 @@ class MusicFeatureExtractorModel:
         return features
 
     def extract_classical(self):
-        pass
+        loudness = librosa.feature.rms(y=self.x, frame_length=2048, hop_length=512, center=True, pad_mode='constant')[0]
+        loudness = (loudness - np.min(loudness)) / (np.max(loudness) - np.min(loudness))
+        loudness_timesteps = librosa.frames_to_time(range(len(self.x)), hop_length=512, sr=self.sr)
+        features = list(zip(loudness_timesteps, loudness))
+        return features
 
     def extract_hiphop(self):
         # Compute mel-scaled spectrogram
@@ -149,7 +153,8 @@ class MusicFeatureExtractorModel:
         pass
     
     def extract_metal(self):
-        pass
+        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
+        return librosa.frames_to_time(beats, sr=self.sr)
 
     def extract_reggae(self):
         #extract the percussion
