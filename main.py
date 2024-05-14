@@ -34,33 +34,18 @@ from preprocess import Datasets
 from utils import CustomModelSaver, PrintLayerOutput, DragDropApp
 import tkinter as tk
 from tkinterdnd2 import DND_FILES, TkinterDnD
-# seed = 12
-# np.random.seed(seed)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 def train(model, datasets, logs_path):
     with tf.device('GPU'):
         callback_list = [
-            # tf.keras.callbacks.EarlyStopping(
-            #     monitor='val_loss',
-            #     patience=5,
-            #     restore_best_weights=True),
-            # tf.keras.callbacks.ModelCheckpoint(
-            #     filepath="best_model.h5",
-            #     monitor='val_loss',
-            #     save_best_only=True,
-            #     format="tf"),
             CustomModelSaver('checkpoints', max_num_weights=5),
-            # PrintLayerOutput(), THIS DOESN'T WORK AS IS 
             tf.keras.callbacks.TensorBoard(
                 log_dir="logs",
                 histogram_freq=1,
                 profile_batch=0)
             ]
-        # images, labels = next(iter(datasets.train_data))
-        # print(images, labels)
-        # tf.print(datasets.test_data)
         for images, labels in datasets.train_data:
             print(images.shape, labels)
             break # Just to check the first batch
@@ -85,27 +70,9 @@ def test(model, test_data):
     model.evaluate(x=test_data, verbose=2)
 
 def main():
-    # time_now = datetime.now()
-    # timestamp = time_now.strftime("%m%d%y-%H%M%S")
-    # init_epoch = 0
-    # datasets = Datasets("../cv_final/data/")
-    # model = GenreClassificationModel()
-    # model(tf.keras.Input(shape=(64, 173, 1)))
     model = GenreClassificationModel()
     model(tf.keras.Input(shape=(64, 173, 1)))
     model.load_weights('../cv_final/your.weights.e014-acc0.8881.h5')
-    # model_architecture = tf.keras.Sequential([model.vgg16, model.head]) 
-    # plot_model(model_architecture, to_file='model_architecture.png', show_shapes=True, show_layer_names=True, expand_nested=True, dpi=300)
-
-    # model.summary()
-
-    # model.compile(
-    #     optimizer='adam',
-    #     loss=model.loss_fn,
-    #     metrics=['accuracy']
-    # )
-    # logs_path = "logs/" + timestamp
-    # train(model, datasets, logs_path)
     root = TkinterDnD.Tk()
     app = DragDropApp(root, model)
     root.mainloop()

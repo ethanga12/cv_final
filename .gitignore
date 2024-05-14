@@ -2,4 +2,4 @@ checkpoints/
 data/
 .DS_Store
 songs/.DS_Store
-
+__pycache__/

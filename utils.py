@@ -20,7 +20,6 @@ class CustomModelSaver(tf.keras.callbacks.Callback):
         super(CustomModelSaver, self).__init__()
 
         self.checkpoint_dir = checkpoint_dir
-        # self.task = task
         self.max_num_weights = max_num_weights
 
     def on_epoch_end(self, epoch, logs=None):
@@ -43,16 +42,7 @@ class CustomModelSaver(tf.keras.callbacks.Callback):
                     "maximum TEST accuracy.\nSaving checkpoint at {location}")
                     .format(epoch + 1, cur_acc, location = save_location))
             self.model.save_weights(save_location)
-            # else:
-            #     save_location = self.checkpoint_dir + os.sep + "vgg." + save_name
-            #     print(("\nEpoch {0:03d} TEST accuracy ({1:.4f}) EXCEEDED previous "
-            #            "maximum TEST accuracy.\nSaving checkpoint at {location}")
-            #            .format(epoch + 1, cur_acc, location = save_location))
-            #     # Only save weights of classification head of VGGModel
-            #     self.model.head.save_weights(save_location)
-
-            # Ensure max_num_weights is not exceeded by removing
-            # minimum weight
+          
             if self.max_num_weights > 0 and \
                     num_weights + 1 > self.max_num_weights:
                 os.remove(self.checkpoint_dir + os.sep + min_acc_file)
@@ -106,7 +96,7 @@ class PrintLayerOutput(tf.keras.callbacks.Callback):
 class DragDropApp:
     def __init__(self, root, model):
         self.root = root
-        self.root.title("Drag and Drop File Interface")
+        self.root.title("Music Video Maker!")
         self.root.geometry("600x300")
         
         self.frame = tk.Frame(root, bd=2, relief="sunken", width=600, height=400, bg="lightblue")
@@ -116,11 +106,7 @@ class DragDropApp:
         
         self.label = tk.Label(self.frame, text="Drag and drop files here (songs must be at least 30 seconds)", font=("Helvetica", 16))
         self.label.pack(pady=10)
-        
-        # self.mp4_label = tk.Label(self.frame, text="MP4 Files", font=("Helvetica", 14))
-        # self.mp4_label.pack(pady=5)
-        # self.mp4_listbox = tk.Listbox(self.frame, width=80, height=5)
-        # self.mp4_listbox.pack(pady=5)
+
         self.genre = ''
         self.songFile = ''
         self.music_extractor = None
@@ -136,7 +122,6 @@ class DragDropApp:
         files = self.root.tk.splitlist(event.data)
         for file in files:
             if file.lower().endswith('.mp4'):
-                print('LOOKATME ' + self.genre)
                 if self.genre == "blues":
                     features = self.music_extractor.extract_blues()
                     video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
@@ -227,27 +212,9 @@ class DragDropApp:
                 if cv2.waitKey(1) & 0xFF == ord('q'): 
                     break
         
-            # Break the loop 
             else: 
                 break
         vid.release() 
         result.release()
-        # Destroy all the windows 
         cv2.destroyAllWindows() 
-       
-        # mp4_files = self.mp4_listbox.get(0, tk.END)
-        # wav_files = self.wav_listbox.get(0, tk.END)
-        
-        # print("MP4 Files:")
-        # for file in mp4_files:
-        #     print(file)
-        
-        # print("\nWAV Files:")
-        # for file in wav_files:
-        #     print(file)
-        
-
-        # for file in files:
-        #     print(file)
-           
-        #     self.file_listbox.insert(tk.END, file)
+    
