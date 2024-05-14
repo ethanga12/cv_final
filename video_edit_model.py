@@ -84,14 +84,11 @@ class VideoEditModel:
         current_beat = 0
         time_limit = self.fps / 4
         timer = 0
+        noise_kernel = np.random.rand(3, 3)
+        noise_kernel = noise_kernel / np.sum(noise_kernel)
 
         while True:
             ret, frame = cap.read()
-
-            left_shift = np.zeros((5, 5))
-            right_shift = np.zeros((5, 5))
-            left_shift[2, 4] = 1
-            right_shift[2, 0] = 1
 
             if not ret or current_beat >= len(self.features):
                 break
@@ -107,11 +104,7 @@ class VideoEditModel:
             sepia = cv2.transform(frame, sepia_matrix)
             
             if timer > 0:
-                random_bit = random.randint(0, 1)
-                if random_bit == 0: 
-                    sepia = cv2.filter2D(sepia, -1, left_shift)
-                else:
-                    sepia = cv2.filter2D(sepia, -1, right_shift)
+                sepia = cv2.filter2D(sepia, -1, noise_kernel)
                 # Resize the cropped frame back to original size
                 frame_resized = cv2.resize(sepia, (self.width, self.height))
                 out.write(frame_resized)
