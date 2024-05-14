@@ -1,4 +1,5 @@
 import librosa
+from librosa import onset
 import numpy as np
 import pyaudio  
 import wave 
@@ -107,43 +108,17 @@ class MusicFeatureExtractorModel:
     # Vocal Separation to find where singer is singing
     # https://librosa.org/doc/main/auto_examples/plot_vocal_separation.html
     def extract_country(self):
-        '''
-        S_full, _ = librosa.magphase(librosa.stft(self.x))
-        S_filter = librosa.decompose.nn_filter(S_full,
-                                       aggregate=np.median,
-                                       metric='cosine',
-                                       width=int(librosa.time_to_frames(2, sr=self.sr)))
-        S_filter = np.minimum(S_full, S_filter)
-        margin_v = 10
-        power = 2
-
-        mask_v = librosa.util.softmask(S_full - S_filter,
-                                    margin_v * S_filter,
-                                    power=power)
-        S_foreground = mask_v * S_full
-
-        # Calculate the sum of magnitudes across frequency bins for each time frame
-        energy_per_frame = np.sum(S_foreground, axis=0)
-        
-        # Threshold to determine when the singer is singing
-        energy_threshold = 0.5 * np.max(energy_per_frame)  # Adjust the threshold as needed
-        
-        # Find the frames where energy exceeds the threshold
-        singing_frames = np.where(energy_per_frame > energy_threshold)[0]
-        
-        # Convert frames to timestamps
-        timestamps = librosa.frames_to_time(singing_frames, sr=self.sr)
-        
-        print("Timestamps where the singer is singing (seconds):", timestamps)
-        print(len(timestamps))
-        '''
+        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
+        return librosa.frames_to_time(beats, sr=self.sr)
 
 
 
     def extract_rock(self):
-        #Check for peaks using scipy. Can play with distance but this one gives us a "peak" every few seconds
-        peaks, _ = find_peaks(self.x, distance=200000)
-        return {peak_index: "hit" for peak_index in peaks}
+        loudness = librosa.feature.rms(y=self.x, frame_length=2048, hop_length=512, center=True, pad_mode='constant')[0]
+        loudness = (loudness - np.min(loudness)) / (np.max(loudness) - np.min(loudness))
+        loudness_timesteps = librosa.frames_to_time(range(len(self.x)), hop_length=512, sr=self.sr)
+        features = [(t, l) for t, l in zip(loudness_timesteps, loudness) if l > 0.85*np.max(loudness)]
+        return features
 
     def extract_classical(self):
         loudness = librosa.feature.rms(y=self.x, frame_length=2048, hop_length=512, center=True, pad_mode='constant')[0]
@@ -153,22 +128,26 @@ class MusicFeatureExtractorModel:
         return features
 
     def extract_hiphop(self):
-        # Separate the bass component from the audio
-        y_harm, _ = librosa.effects.hpss(self.x)
-        
-        # Calculate the onset strength envelope for the bass component
-        onset_env = librosa.onset.onset_strength(y=y_harm, sr=self.sr)
-        
-        # Set a threshold to identify significant bass events
-        threshold = 0.5 * np.max(onset_env)  # Adjust threshold as needed
-        
-        # Find frames where the onset strength exceeds the threshold
-        bass_event_frames = np.where(onset_env > threshold)[0]
-        
-        # Convert frames to timestamps
-        bass_event_timestamps = librosa.frames_to_time(bass_event_frames, sr=self.sr)
-        
-        return bass_event_timestamps
+        # Compute mel-scaled spectrogram
+        S = librosa.feature.melspectrogram(y=self.x, sr=self.sr)
+
+        # Convert to decibels
+        S_dB = librosa.power_to_db(S, ref=np.max)
+
+        # Extract bass regions (for example, frequencies below 100 Hz)
+        bass_region = S_dB[20:200, :]
+
+        # Compute the average energy in the bass region for each time frame
+        bass_energy = np.mean(bass_region, axis=0)
+
+        # Find the peaks (strongest bass hits)
+        peaks, _ = find_peaks(bass_energy, distance=150)
+        print(len(peaks))
+
+        # Return the time positions of the strongest bass hits
+        time_positions = librosa.frames_to_time(peaks, sr=self.sr)
+
+        return time_positions
 
     def extract_jazz(self):
         pass
@@ -187,9 +166,7 @@ class MusicFeatureExtractorModel:
         _, beats = librosa.beat.beat_track(onset_envelope=onset_env, sr=self.sr)
         
         # Convert beat frames to timestamps
-        beat_timestamps = librosa.frames_to_time(beats, sr=self.sr)
-        
-        return beat_timestamps
+        return librosa.frames_to_time(beats, sr=self.sr)
 
     def extract_blues(self):
         pass  
