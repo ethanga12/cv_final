@@ -179,6 +179,7 @@ class DragDropApp:
                 self.songFile = file
                 print(self.songFile)
                 res = classify(self.model, file)
+                print
                 self.genre = res
                 self.wav_listbox.insert(tk.END, 'Genre for ' + file + ': ' + res)
                 self.music_extractor = Extractor(file)
