@@ -75,13 +75,16 @@ def main():
     #UNCOMMENT THIS TO TEST
     # datasets = Datasets("../cv_final")
     # my_val = datasets.val_data
+    # model = GenreClassificationModel()
+    # model(tf.keras.Input(shape=(64, 173, 1)))
+    # model.load_weights('../cv_final/genre_classify_e019-acc0.8973.h5')
     # input_shape = (64, 173, 1)
     # x_val, y_val = zip(*my_val)
     # x_val = np.array([x.reshape(input_shape) for x in x_val])
     # y_val = np.array(y_val)
     # print(f"x_val shape: {x_val.shape}")
     # print(f"y_val shape: {y_val.shape}")
-    # model.load_weights('../cv_final/your.weights.e014-acc0.8881.h5')
+    # model.load_weights('../cv_final/genre_classify_e019-acc0.8973.h5')
     # model.compile(
     #     optimizer='adam',
     #     loss=model.loss_fn,
@@ -89,7 +92,7 @@ def main():
     # )
     # test(model, x_val, y_val)
     
-    #TKINTER GUI
+    # TKINTER GUI
     model = GenreClassificationModel()
     model(tf.keras.Input(shape=(64, 173, 1)))
     model.load_weights('../cv_final/genre_classify_e019-acc0.8973.h5')
