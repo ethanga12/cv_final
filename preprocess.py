@@ -19,6 +19,7 @@ class Datasets(): #Borrowed from hw5 and repurposed for genre classification and
         self.class_to_idx = {}
         
         data = self.wav_to_mel()
+        random.shuffle(data)
         self.train_data = data[:int(len(data)*0.8)]
         self.val_data = data[int(len(data)*0.8):int(len(data)*0.9)]
         self.test_data = data[int(len(data)*0.9):]
