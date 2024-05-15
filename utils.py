@@ -8,6 +8,9 @@ from matplotlib import pyplot as plt
 import tkinter as tk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from classify import classify
+from video_edit_model import VideoEditModel
+from music_feature_extraction import MusicFeatureExtractorModel as Extractor
+import cv2
 
 
 class CustomModelSaver(tf.keras.callbacks.Callback):
@@ -17,7 +20,6 @@ class CustomModelSaver(tf.keras.callbacks.Callback):
         super(CustomModelSaver, self).__init__()
 
         self.checkpoint_dir = checkpoint_dir
-        # self.task = task
         self.max_num_weights = max_num_weights
 
     def on_epoch_end(self, epoch, logs=None):
@@ -40,16 +42,7 @@ class CustomModelSaver(tf.keras.callbacks.Callback):
                     "maximum TEST accuracy.\nSaving checkpoint at {location}")
                     .format(epoch + 1, cur_acc, location = save_location))
             self.model.save_weights(save_location)
-            # else:
-            #     save_location = self.checkpoint_dir + os.sep + "vgg." + save_name
-            #     print(("\nEpoch {0:03d} TEST accuracy ({1:.4f}) EXCEEDED previous "
-            #            "maximum TEST accuracy.\nSaving checkpoint at {location}")
-            #            .format(epoch + 1, cur_acc, location = save_location))
-            #     # Only save weights of classification head of VGGModel
-            #     self.model.head.save_weights(save_location)
-
-            # Ensure max_num_weights is not exceeded by removing
-            # minimum weight
+          
             if self.max_num_weights > 0 and \
                     num_weights + 1 > self.max_num_weights:
                 os.remove(self.checkpoint_dir + os.sep + min_acc_file)
@@ -103,22 +96,20 @@ class PrintLayerOutput(tf.keras.callbacks.Callback):
 class DragDropApp:
     def __init__(self, root, model):
         self.root = root
-        self.root.title("Drag and Drop File Interface")
-        self.root.geometry("600x500")
+        self.root.title("Music Video Maker!")
+        self.root.geometry("600x300")
         
         self.frame = tk.Frame(root, bd=2, relief="sunken", width=600, height=400, bg="lightblue")
         self.frame.pack(fill="both", expand=True)
         self.frame.drop_target_register(DND_FILES)
         self.frame.dnd_bind('<<Drop>>', self.drop)
         
-        self.label = tk.Label(self.frame, text="Drag and drop files here", font=("Helvetica", 16))
+        self.label = tk.Label(self.frame, text="Drag and drop files here (songs must be at least 30 seconds)", font=("Helvetica", 16))
         self.label.pack(pady=10)
-        
-        # self.mp4_label = tk.Label(self.frame, text="MP4 Files", font=("Helvetica", 14))
-        # self.mp4_label.pack(pady=5)
-        # self.mp4_listbox = tk.Listbox(self.frame, width=80, height=5)
-        # self.mp4_listbox.pack(pady=5)
 
+        self.genre = ''
+        self.songFile = ''
+        self.music_extractor = None
         self.wav_label = tk.Label(self.frame, text="Files", font=("Helvetica", 14))
         self.wav_label.pack(pady=5)
         self.wav_listbox = tk.Listbox(self.frame, width=80, height=5)
@@ -128,40 +119,99 @@ class DragDropApp:
         self.model = model
 
     def drop(self, event):
-        # files = self.root.tk.splitlist(event.data)
-
         files = self.root.tk.splitlist(event.data)
         for file in files:
             if file.lower().endswith('.mp4'):
-                self.mp4_listbox.insert(tk.END, file)
-            elif file.lower().endswith('.wav'):
-                classify(self.model, file)
+                if self.genre == "blues":
+                    features = self.music_extractor.extract_blues()
+                    video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
+                    video_editor.video_edits_blues()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif self.genre == "reggae":
+                    features = self.music_extractor.extract_reggae()
+                    video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
+                    video_editor.video_edits_reggae()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif self.genre == "metal":
+                    metal_features = self.music_extractor.extract_metal()
+                    video_editor = VideoEditModel(file, self.songFile, metal_features, 'res2.mp4')
+                    video_editor.video_edits_metal()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif self.genre == "pop":
+                    features = self.music_extractor.extract_pop()
+                    video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
+                    video_editor.video_edits_pop()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif self.genre == "jazz":
+                    features = self.music_extractor.extract_jazz()
+                    video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
+                    video_editor.video_edits_jazz()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif self.genre == "hiphop":
+                    features = self.music_extractor.extract_hiphop()
+                    video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
+                    video_editor.video_edits_hiphop()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif self.genre == "rock":
+                    features = self.music_extractor.extract_rock()
+                    video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
+                    video_editor.video_edits_rock()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif self.genre == "classical":
+                    features = self.music_extractor.extract_classical()
+                    video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
+                    video_editor.video_edits_classical()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif self.genre == "country":
+                    features = self.music_extractor.extract_country()
+                    video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
+                    video_editor.video_edits_country()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                elif self.genre == "disco":
+                    features = self.music_extractor.extract_disco()
+                    video_editor = VideoEditModel(file, self.songFile, features, 'res.mp4')
+                    video_editor.video_edits_disco()
+                    self.wav_label['text'] = "Results saved in res.mp4"
+                else:
+                    self.wav_label['text'] = "Please upload a wav file first."
                 self.wav_listbox.insert(tk.END, file)
+            elif file.lower().endswith('.wav'):
+                self.songFile = file
+                print(self.songFile)
+                res = classify(self.model, file)
+                print
+                self.genre = res
+                self.wav_listbox.insert(tk.END, 'Genre for ' + file + ': ' + res)
+                self.music_extractor = Extractor(file)
             else:
                 tk.messagebox.showwarning("Unsupported File", f"Unsupported file type: {file}")
 
 
-    def use_webcam(self):
-        if self.button['text'] == 'Use Webcam':
-            print('using webcam')
-            self.button['text'] = 'Stop Webcam'
-        else:
-            print('stopping webcam')
-            self.button['text'] = 'Use Webcam'
-       
-        # mp4_files = self.mp4_listbox.get(0, tk.END)
-        # wav_files = self.wav_listbox.get(0, tk.END)
+    def use_webcam(self): #https://www.geeksforgeeks.org/saving-a-video-using-opencv/
+        print('using webcam')
+        vid = cv2.VideoCapture(0) 
+        if (vid.isOpened() == False):  
+            print("Error reading video file") 
         
-        # print("MP4 Files:")
-        # for file in mp4_files:
-        #     print(file)
+        frame_width = 640
+        frame_height = 480
         
-        # print("\nWAV Files:")
-        # for file in wav_files:
-        #     print(file)
+        size = (frame_width, frame_height) 
+        result = cv2.VideoWriter('webcam_vid.mp4',  
+                         cv2.VideoWriter_fourcc(*'mp4v'), 
+                         24, size) 
         
-
-        # for file in files:
-        #     print(file)
-           
-        #     self.file_listbox.insert(tk.END, file)
+        while(True): 
+            ret, frame = vid.read() 
+            if ret == True:  
+  
+                result.write(frame) 
+                cv2.imshow('Frame', frame) 
+                if cv2.waitKey(1) & 0xFF == ord('q'): 
+                    break
+            else: 
+                break
+        vid.release() 
+        result.release()
+        cv2.destroyAllWindows() 
+    

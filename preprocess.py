@@ -128,7 +128,6 @@ class Datasets():
             classes=classes_for_flow)
         
         if not bool(self.idx_to_class):
-            print('here')
             unordered_classes = []
             for dir_name in os.listdir(path):
                 if os.path.isdir(os.path.join(path, dir_name)):
