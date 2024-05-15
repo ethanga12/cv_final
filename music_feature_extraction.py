@@ -98,7 +98,15 @@ class MusicFeatureExtractorModel:
         plt.show()
 
     def extract_pop(self):
-        pass
+        # Separate the bass component from the audio
+        y_harm, _ = librosa.effects.hpss(self.x)
+        
+        # Set a threshold to identify significant pop instruments
+        pop_freq_range = (200, 700)
+        y_bass_filtered = librosa.effects.hpss(y_harm, margin=pop_freq_range)[0]
+        
+        # Convert frames to timestamps
+        return librosa.frames_to_time(y_bass_filtered, sr=self.sr)
 
     def extract_disco(self):
         tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
@@ -150,7 +158,14 @@ class MusicFeatureExtractorModel:
         return time_positions
 
     def extract_jazz(self):
-        pass
+        y_harm, y_perc = librosa.effects.hpss(self.x)
+        y_total = np.array(sorted(y_harm+y_perc))
+        # Set a threshold to identify significant jazz instruments
+        pop_freq_range = (600, 900)
+        y_bass_filtered = librosa.effects.hpss(y_total, margin=pop_freq_range)[0]
+        # Convert frames to timestamps
+        return librosa.frames_to_time(y_bass_filtered, sr=self.sr)
+    
     
     def extract_metal(self):
         tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
@@ -169,7 +184,25 @@ class MusicFeatureExtractorModel:
         return librosa.frames_to_time(beats, sr=self.sr)
 
     def extract_blues(self):
-        pass  
+        S = librosa.feature.melspectrogram(y=self.x, sr=self.sr)
+
+        # Convert to decibels
+        S_dB = librosa.power_to_db(S, ref=np.max)
+
+        # Extract bass regions (for example, frequencies below 100 Hz)
+        bass_region = S_dB[20:200, :]
+
+        # Compute the average energy in the bass region for each time frame
+        bass_energy = np.mean(bass_region, axis=0)
+
+        # Find the peaks (strongest bass hits)
+        peaks, _ = find_peaks(bass_energy, distance=150)
+        print(len(peaks))
+
+        # Return the time positions of the strongest bass hits
+        time_positions = librosa.frames_to_time(peaks, sr=self.sr)
+
+        return time_positions  
 
 if __name__ == "__main__":
     # This code block will only execute if the file is executed directly, not imported
