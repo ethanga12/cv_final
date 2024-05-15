@@ -97,9 +97,9 @@ class DragDropApp:
     def __init__(self, root, model):
         self.root = root
         self.root.title("Music Video Maker!")
-        self.root.geometry("600x300")
+        self.root.geometry("600x800")
         
-        self.frame = tk.Frame(root, bd=2, relief="sunken", width=600, height=400, bg="lightblue")
+        self.frame = tk.Frame(root, bd=2, relief="sunken", width=600, height=800, bg="lightblue")
         self.frame.pack(fill="both", expand=True)
         self.frame.drop_target_register(DND_FILES)
         self.frame.dnd_bind('<<Drop>>', self.drop)
@@ -117,7 +117,30 @@ class DragDropApp:
         self.button = tk.Button(self.frame, text="Use Webcam", command=self.use_webcam, bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
         self.button.pack(padx=30, pady=30)
         self.model = model
-
+        self.blues_genre =  tk.Button(self.frame, text="Blues", command=lambda: self.set_genre('blues'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.classical_genre =  tk.Button(self.frame, text="Classical", command=lambda: self.set_genre('classical'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.country_genre =  tk.Button(self.frame, text="Country", command=lambda: self.set_genre('country'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.disco_genre =  tk.Button(self.frame, text="Disco", command=lambda: self.set_genre('disco'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.hiphop_genre =  tk.Button(self.frame, text="Hip Hop", command=lambda: self.set_genre('hiphop'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.jazz_genre =  tk.Button(self.frame, text="Jazz", command=lambda: self.set_genre('jazz'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.metal_genre =  tk.Button(self.frame, text="Metal", command=lambda: self.set_genre('metal'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.pop_genre =  tk.Button(self.frame, text="Pop", command=lambda: self.set_genre('pop'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.reggae_genre =  tk.Button(self.frame, text="Reggae", command=lambda: self.set_genre('reggae'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.rock_genre =  tk.Button(self.frame, text="Rock", command=lambda: self.set_genre('rock'), bd=5, relief="solid", bg="blue", fg="black", padx=10, pady=5, font=("Helvetica", 14))
+        self.blues_genre.pack(pady=5)
+        self.classical_genre.pack(pady=5)
+        self.country_genre.pack(pady=5)
+        self.disco_genre.pack(pady=5)
+        self.hiphop_genre.pack(pady=5)
+        self.jazz_genre.pack(pady=5)
+        self.metal_genre.pack(pady=5)
+        self.pop_genre.pack(pady=5)
+        self.reggae_genre.pack(pady=5)
+        self.rock_genre.pack(pady=5)
+    
+    def set_genre(self, genre):
+        self.genre = genre
+        self.wav_label['text'] = "Genre set to " + genre
     def drop(self, event):
         files = self.root.tk.splitlist(event.data)
         for file in files:
@@ -183,6 +206,7 @@ class DragDropApp:
                 self.genre = res
                 self.wav_listbox.insert(tk.END, 'Genre for ' + file + ': ' + res)
                 self.music_extractor = Extractor(file)
+                self.set_genre(res)
             else:
                 tk.messagebox.showwarning("Unsupported File", f"Unsupported file type: {file}")
 
@@ -193,8 +217,8 @@ class DragDropApp:
         if (vid.isOpened() == False):  
             print("Error reading video file") 
         
-        frame_width = 640
-        frame_height = 480
+        frame_width = int(vid.get(3))
+        frame_height = int(vid.get(4))
         
         size = (frame_width, frame_height) 
         result = cv2.VideoWriter('webcam_vid.mp4',  

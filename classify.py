@@ -35,7 +35,7 @@ def classify(model, songname):
 
  
     res = []
-    for i in range(14): 
+    for i in range(5): 
         y, sr = librosa.load(songname, mono=True, duration=2, offset=i*2)
         ps = librosa.feature.melspectrogram(y=y, sr=sr, hop_length = 256, n_fft = 512, n_mels=64)
         ps = librosa.power_to_db(ps**2)
