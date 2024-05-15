@@ -486,7 +486,7 @@ class VideoEditModel:
         while True:
             ret, frame = cap.read()
 
-            if not ret:
+            if not ret or current_beat >= len(self.features):
                 break
 
             if current_time > self.features[current_beat]:
