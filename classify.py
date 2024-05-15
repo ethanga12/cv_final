@@ -30,7 +30,7 @@ import h5py
 from keras.models import load_model, Model, Sequential
 from keras.layers import Input, Conv2D, MaxPool2D, Flatten, Dense, Dropout, BatchNormalization
 
-def classify(model, songname): 
+def classify(model, songname): #classifies given song based off majority vote
  
     res = []
     for i in range(14): 

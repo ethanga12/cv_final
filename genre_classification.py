@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout, BatchNormalization
 
-class GenreClassificationModel(tf.keras.Model):
+class GenreClassificationModel(tf.keras.Model): #genre classification model (vgg16 base with custom head for 10 genres)
     def __init__(self):
         super(GenreClassificationModel, self).__init__()
 

@@ -37,7 +37,7 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-def train(model, datasets, logs_path):
+def train(model, datasets, logs_path): #train model which splits up preprocessed data
     with tf.device('GPU'):
         callback_list = [
             CustomModelSaver('checkpoints', max_num_weights=5),
@@ -70,6 +70,7 @@ def test(model, test_data):
     model.evaluate(x=test_data, verbose=2)
 
 def main():
+    #UNCOMMENT THIS TO TRAIN
     # time_now = datetime.now()
     # timestamp = time_now.strftime("%m%d%y-%H%M%S")
     # init_epoch = 0
@@ -86,7 +87,7 @@ def main():
     # logs_path = "logs/" + timestamp
     # train(model, datasets, logs_path)
 
-
+    #TKINTER GUI
     model = GenreClassificationModel()
     model(tf.keras.Input(shape=(64, 173, 1)))
     model.load_weights('../cv_final/your.weights.e014-acc0.8881.h5')

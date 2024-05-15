@@ -13,7 +13,7 @@ from music_feature_extraction import MusicFeatureExtractorModel as Extractor
 import cv2
 
 
-class CustomModelSaver(tf.keras.callbacks.Callback):
+class CustomModelSaver(tf.keras.callbacks.Callback): #borrowed from hw5
     """ Custom Keras callback for saving weights of networks. """
 
     def __init__(self, checkpoint_dir, max_num_weights=5):
@@ -22,7 +22,6 @@ class CustomModelSaver(tf.keras.callbacks.Callback):
         self.checkpoint_dir = checkpoint_dir
         self.max_num_weights = max_num_weights
 
-    def on_epoch_end(self, epoch, logs=None):
         """ At epoch end, weights are saved to checkpoint directory. """
 
         min_acc_file, max_acc_file, max_acc, num_weights = \
@@ -50,7 +49,7 @@ class CustomModelSaver(tf.keras.callbacks.Callback):
             print(("\nEpoch {0:03d} TEST accuracy ({1:.4f}) DID NOT EXCEED "
                    "previous maximum TEST accuracy.\nNo checkpoint was "
                    "saved").format(epoch + 1, cur_acc))
-    def scan_weight_files(self):
+    def scan_weight_files(self): #borrowed from hw5
         """ Scans checkpoint directory to find current minimum and maximum
         accuracy weights files as well as the number of weights. """
 
@@ -77,7 +76,7 @@ class CustomModelSaver(tf.keras.callbacks.Callback):
         return min_acc_file, max_acc_file, max_acc, num_weights
 
 
-class PrintLayerOutput(tf.keras.callbacks.Callback):
+class PrintLayerOutput(tf.keras.callbacks.Callback): #borrowed from hw5
     def on_epoch_end(self, epoch, logs=None):
         if not self.model.inputs:
             raise ValueError("Model has not been built. Ensure model is built and has input data.")
@@ -93,7 +92,7 @@ class PrintLayerOutput(tf.keras.callbacks.Callback):
         layer_output = output_func([input_data])
         print("Output of layer at epoch {}: {}".format(epoch, layer_output))
 
-class DragDropApp:
+class DragDropApp: #our drag drop gui built with tkinter!
     def __init__(self, root, model):
         self.root = root
         self.root.title("Music Video Maker!")
