@@ -2,13 +2,13 @@ import numpy as np
 import tensorflow as tf
 from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout, BatchNormalization
 
-class GenreClassificationModel(tf.keras.Model):
+class GenreClassificationModel(tf.keras.Model): #genre classification model (vgg16 base with custom head for 10 genres)
     def __init__(self):
         super(GenreClassificationModel, self).__init__()
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
         self.vgg16 = [
-            #imgs are 432x288
+           
              # Block 1
             Conv2D(64, 3, 1, padding="same",
                    activation="relu", name="block1_conv1", input_shape=(64, 173, 1)),
@@ -54,38 +54,22 @@ class GenreClassificationModel(tf.keras.Model):
             Dropout(0.2),
             Dense(10, activation="softmax")
         ]
-       #  for layer in self.vgg16.layers:
-       #        layer.trainable = False
+
         self.vgg16 = tf.keras.Sequential(self.vgg16, name="vgg_base")
         self.head = tf.keras.Sequential(self.head, name="head")
+
+        
+
+
     
     def call(self, x):
         count = 0
         vals = x
-        # with tf.device('GPU'):
-            # for layer in self.architecture:
-            #     # print(layer, x.shape)
-            #     layer._name = f"layer_{count}"
-            #     count += 1
-            #     x = layer(x)
         x = self.vgg16(x)
         x = self.head(x)
-                
-        # import pdb; pdb.set_trace()
-        # print(x)
-        # with tf.Session() as sess:
-        #     result = sess.run(x)
-        #     print(result)
         return x
     
     @staticmethod
     def loss_fn(labels, predictions):
-       # import pdb; pdb.set_trace()
-       # print('HEREHEREHERE', labels.shape, predictions.shape)
-       # labels = tf.reshape(labels, predictions.shape)
-       
-       # loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-       # loss = loss_fn(labels, predictions)
-       # return loss
        loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
        return loss(labels, predictions)

@@ -7,19 +7,19 @@ from PIL import Image
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import librosa
 # np.set_printoptions(threshold=sys.maxsize)
-class Datasets():
+class Datasets(): #Borrowed from hw5 and repurposed for genre classification and png reading
 
     def __init__(self, data_path): 
         self.data_path = data_path
         self.mean = np.zeros((288, 432, 4))
         self.std = np.ones((288, 432, 4))
-        # self.calc_mean_and_std()
-        # self.classes = ["blues", "classical", "country", "disco", "hiphop", "jazz", "metal", "pop", "reggae", "rock"]
+        
         self.classes = [""] * 10
         self.idx_to_class = {}
         self.class_to_idx = {}
         
         data = self.wav_to_mel()
+        random.shuffle(data)
         self.train_data = data[:int(len(data)*0.8)]
         self.val_data = data[int(len(data)*0.8):int(len(data)*0.9)]
         self.test_data = data[int(len(data)*0.9):]
@@ -32,10 +32,6 @@ class Datasets():
                     file_list.append(os.path.join(root, name))
 
 
-        # Shuffle filepaths
-        # random.shuffle(file_list)
-        # print('LOOKATME')
-        # print(Image.open(file_list[0]))
 
 
         # Take sample of file paths
@@ -128,7 +124,6 @@ class Datasets():
             classes=classes_for_flow)
         
         if not bool(self.idx_to_class):
-            print('here')
             unordered_classes = []
             for dir_name in os.listdir(path):
                 if os.path.isdir(os.path.join(path, dir_name)):

@@ -1,9 +1,11 @@
 import librosa
+from librosa import onset
 import numpy as np
 import pyaudio  
 import wave 
 import matplotlib.pyplot as plt
 import librosa.display
+from scipy.signal import find_peaks
 
 class MusicFeatureExtractorModel:
     def __init__(self, song_path):
@@ -37,11 +39,11 @@ class MusicFeatureExtractorModel:
         #close PyAudio  
         p.terminate() 
 
-    def display_waveform_segment(self, start_second, end_second):
+    def display_raw_samples(self):
         #Zooming in on a plot to show raw sample values
         #Documentation: https://librosa.org/doc/latest/generated/librosa.display.waveshow.html#librosa.display.waveshow
         fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
-        ax.set(xlim=[start_second, end_second], title='Sample view', ylim=[-1, 1])
+        ax.set(xlim=[6.0, 6.01], title='Sample view', ylim=[-1, 1])
         y_harm, y_perc = librosa.effects.hpss(self.x)
         librosa.display.waveshow(self.x, sr=self.sr, ax=ax, marker='.', label='Full signal')
         librosa.display.waveshow(y_harm, sr=self.sr, alpha=0.5, ax=ax2, label='Harmonic')
@@ -96,43 +98,118 @@ class MusicFeatureExtractorModel:
         plt.show()
 
     def extract_pop(self):
-        pass
+        # Separate the bass component from the audio
+        y_harm, _ = librosa.effects.hpss(self.x)
+        
+        # Set a threshold to identify significant pop instruments
+        pop_freq_range = (200, 700)
+        y_bass_filtered = librosa.effects.hpss(y_harm, margin=pop_freq_range)[0]
+        
+        # Convert frames to timestamps
+        return librosa.frames_to_time(y_bass_filtered, sr=self.sr)
 
     def extract_disco(self):
         tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
         return librosa.frames_to_time(beats, sr=self.sr)
 
 
+    # Vocal Separation to find where singer is singing
+    # https://librosa.org/doc/main/auto_examples/plot_vocal_separation.html
     def extract_country(self):
-        pass
+        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
+        return librosa.frames_to_time(beats, sr=self.sr)
+
+
 
     def extract_rock(self):
-        pass
+        loudness = librosa.feature.rms(y=self.x, frame_length=2048, hop_length=512, center=True, pad_mode='constant')[0]
+        loudness = (loudness - np.min(loudness)) / (np.max(loudness) - np.min(loudness))
+        loudness_timesteps = librosa.frames_to_time(range(len(self.x)), hop_length=512, sr=self.sr)
+        features = [(t, l) for t, l in zip(loudness_timesteps, loudness) if l > 0.85*np.max(loudness)]
+        return features
 
     def extract_classical(self):
-        pass
+        loudness = librosa.feature.rms(y=self.x, frame_length=2048, hop_length=512, center=True, pad_mode='constant')[0]
+        loudness = (loudness - np.min(loudness)) / (np.max(loudness) - np.min(loudness))
+        loudness_timesteps = librosa.frames_to_time(range(len(self.x)), hop_length=512, sr=self.sr)
+        features = list(zip(loudness_timesteps, loudness))
+        return features
 
     def extract_hiphop(self):
-        pass
+        # Compute mel-scaled spectrogram
+        S = librosa.feature.melspectrogram(y=self.x, sr=self.sr)
+
+        # Convert to decibels
+        S_dB = librosa.power_to_db(S, ref=np.max)
+
+        # Extract bass regions (for example, frequencies below 100 Hz)
+        bass_region = S_dB[20:200, :]
+
+        # Compute the average energy in the bass region for each time frame
+        bass_energy = np.mean(bass_region, axis=0)
+
+        # Find the peaks (strongest bass hits)
+        peaks, _ = find_peaks(bass_energy, distance=150)
+        print(len(peaks))
+
+        # Return the time positions of the strongest bass hits
+        time_positions = librosa.frames_to_time(peaks, sr=self.sr)
+
+        return time_positions
 
     def extract_jazz(self):
-        pass
+        y_harm, y_perc = librosa.effects.hpss(self.x)
+        y_total = np.array(sorted(y_harm+y_perc))
+        # Set a threshold to identify significant jazz instruments
+        pop_freq_range = (600, 900)
+        y_bass_filtered = librosa.effects.hpss(y_total, margin=pop_freq_range)[0]
+        # Convert frames to timestamps
+        return librosa.frames_to_time(y_bass_filtered, sr=self.sr)
+    
     
     def extract_metal(self):
-        pass
+        tempo, beats = librosa.beat.beat_track(y=self.x, sr=self.sr)
+        return librosa.frames_to_time(beats, sr=self.sr)
 
     def extract_reggae(self):
-        pass
+        #extract the percussion
+        _, y_perc = librosa.effects.hpss(self.x)
+        # Calculate the onset strength envelope
+        onset_env = librosa.onset.onset_strength(y=y_perc, sr=self.sr)
+        
+        # Find the beat locations using the onset strength envelope
+        _, beats = librosa.beat.beat_track(onset_envelope=onset_env, sr=self.sr)
+        
+        # Convert beat frames to timestamps
+        return librosa.frames_to_time(beats, sr=self.sr)
 
     def extract_blues(self):
-        pass  
+        S = librosa.feature.melspectrogram(y=self.x, sr=self.sr)
+
+        # Convert to decibels
+        S_dB = librosa.power_to_db(S, ref=np.max)
+
+        # Extract bass regions (for example, frequencies below 100 Hz)
+        bass_region = S_dB[20:200, :]
+
+        # Compute the average energy in the bass region for each time frame
+        bass_energy = np.mean(bass_region, axis=0)
+
+        # Find the peaks (strongest bass hits)
+        peaks, _ = find_peaks(bass_energy, distance=150)
+        print(len(peaks))
+
+        # Return the time positions of the strongest bass hits
+        time_positions = librosa.frames_to_time(peaks, sr=self.sr)
+
+        return time_positions  
 
 if __name__ == "__main__":
     # This code block will only execute if the file is executed directly, not imported
     example = MusicFeatureExtractorModel("songs/disco/dancing_queen.wav")
-    
+    example.extract_country()
     #example.play_song()
     #example.display_waveform_segment(6, 6.01)
     #example.display_waveform()
     #example.display_spectrogram()
-    example.display_pitches()
+    #example.display_pitches()
