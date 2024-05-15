@@ -1,35 +1,14 @@
 import os
-import sys
-import argparse
-import re
+
 from datetime import datetime
 import tensorflow as tf
-from tensorflow.keras.utils import plot_model
-import keras
 import plotly.graph_objects as go
 
 
 from genre_classification import GenreClassificationModel
-from skimage.transform import resize
-
-
-from skimage.io import imread
-from skimage.segmentation import mark_boundaries
-from matplotlib import pyplot as plt
 import numpy as np
 
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-sns.set_style('whitegrid')
 # %matplotlib inline
-import warnings
-warnings.filterwarnings('ignore')
-import sklearn.metrics as skm
-import sklearn.model_selection as skms
-import sklearn.preprocessing as skp
-import random
 from preprocess import Datasets
 from utils import CustomModelSaver, PrintLayerOutput, DragDropApp
 import tkinter as tk
@@ -76,21 +55,22 @@ def test(model, x, y):
 
 def main():
     #UNCOMMENT THIS TO TRAIN
-    time_now = datetime.now()
-    timestamp = time_now.strftime("%m%d%y-%H%M%S")
-    init_epoch = 0
-    datasets = Datasets("../cv_final")
-    model = GenreClassificationModel()
-    model(tf.keras.Input(shape=(64, 173, 1)))
-    model.summary()
+    # time_now = datetime.now()
+    # timestamp = time_now.strftime("%m%d%y-%H%M%S")
+    # init_epoch = 0
+    # datasets = Datasets("../cv_final")
+    
+    # model = GenreClassificationModel()
+    # model(tf.keras.Input(shape=(64, 173, 1)))
+    # model.summary()
 
-    model.compile(
-        optimizer='adam',
-        loss=model.loss_fn,
-        metrics=['accuracy']
-    )
-    logs_path = "logs/" + timestamp
-    train(model, datasets, logs_path)
+    # model.compile(
+    #     optimizer='adam',
+    #     loss=model.loss_fn,
+    #     metrics=['accuracy']
+    # )
+    # logs_path = "logs/" + timestamp
+    # train(model, datasets, logs_path)
     
     #UNCOMMENT THIS TO TEST
     # datasets = Datasets("../cv_final")
@@ -101,10 +81,6 @@ def main():
     # y_val = np.array(y_val)
     # print(f"x_val shape: {x_val.shape}")
     # print(f"y_val shape: {y_val.shape}")
-    
-    #TKINTER GUI
-    # model = GenreClassificationModel()
-    # model(tf.keras.Input(shape=(64, 173, 1)))
     # model.load_weights('../cv_final/your.weights.e014-acc0.8881.h5')
     # model.compile(
     #     optimizer='adam',
@@ -112,9 +88,14 @@ def main():
     #     metrics=['accuracy']
     # )
     # test(model, x_val, y_val)
-    # root = TkinterDnD.Tk()
-    # app = DragDropApp(root, model)
-    # root.mainloop()
+    
+    #TKINTER GUI
+    model = GenreClassificationModel()
+    model(tf.keras.Input(shape=(64, 173, 1)))
+    model.load_weights('../cv_final/genre_classify_e019-acc0.8973.h5')
+    root = TkinterDnD.Tk()
+    app = DragDropApp(root, model)
+    root.mainloop()
 
 main()
 
